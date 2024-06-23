@@ -8,6 +8,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import xuan.cat.fartherviewdistance.api.branch.BranchMinecraft;
 import xuan.cat.fartherviewdistance.api.branch.BranchPacket;
 import xuan.cat.fartherviewdistance.code.branch.v120.Branch_120_Minecraft;
@@ -18,6 +19,8 @@ import xuan.cat.fartherviewdistance.code.branch.v120_4.Branch_120_4_Minecraft;
 import xuan.cat.fartherviewdistance.code.branch.v120_4.Branch_120_4_Packet;
 import xuan.cat.fartherviewdistance.code.branch.v120_6.Branch_120_6_Minecraft;
 import xuan.cat.fartherviewdistance.code.branch.v120_6.Branch_120_6_Packet;
+import xuan.cat.fartherviewdistance.code.branch.v121.Branch_121_Minecraft;
+import xuan.cat.fartherviewdistance.code.branch.v121.Branch_121_Packet;
 import xuan.cat.fartherviewdistance.code.branch.v14.Branch_14_Minecraft;
 import xuan.cat.fartherviewdistance.code.branch.v14.Branch_14_Packet;
 import xuan.cat.fartherviewdistance.code.branch.v15.Branch_15_Minecraft;
@@ -113,6 +116,13 @@ public final class ChunkIndex extends JavaPlugin {
             // 1.20.5
             ChunkIndex.branchPacket = new Branch_120_6_Packet();
             ChunkIndex.branchMinecraft = new Branch_120_6_Minecraft();
+            ChunkIndex.chunkServer = new ChunkServer(ChunkIndex.configData, (Plugin) this, ViewShape.ROUND, ChunkIndex.branchMinecraft,
+                    ChunkIndex.branchPacket);
+
+        } else if (bukkitVersionOld.contains("1.21")) {
+            // 1.21
+            ChunkIndex.branchPacket = new Branch_121_Packet();
+            ChunkIndex.branchMinecraft = new Branch_121_Minecraft();
             ChunkIndex.chunkServer = new ChunkServer(ChunkIndex.configData, (Plugin) this, ViewShape.ROUND, ChunkIndex.branchMinecraft,
                     ChunkIndex.branchPacket);
         } else {

@@ -13,6 +13,7 @@ del FartherViewDistance.jar
 "C:\Program Files\7-Zip\7z.exe" x .\branch_1_20_2\target\branch_1_20-r2.jar -o.\temporary\ -y
 "C:\Program Files\7-Zip\7z.exe" x .\branch_1_20_4\target\branch_1_20-r4.jar -o.\temporary\ -y
 "C:\Program Files\7-Zip\7z.exe" x .\branch_1_20_6\target\branch_1_20-r6.jar -o.\temporary\ -y
+"C:\Program Files\7-Zip\7z.exe" x .\branch_1_21\target\branch_1_21-r0.jar -o.\temporary\ -y
 
 "C:\Program Files\7-Zip\7z.exe" a -aou FartherViewDistance.jar .\temporary\*
 rmdir /s /q temporary
