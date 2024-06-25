@@ -144,13 +144,9 @@ public final class Branch_120_6_ChunkRegionLoader {
         final ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         final UpgradeData upgradeData = nbt.contains("UpgradeData", 10) ? new UpgradeData(nbt.getCompound("UpgradeData"), world)
                 : UpgradeData.EMPTY;
-        /*
-         * final boolean isLightOn =
-         * Objects.requireNonNullElse(ChunkStatus.byName(nbt.getString("Status")),
-         * ChunkStatus.EMPTY) .isOrAfter(ChunkStatus.LIGHT) && (nbt.get("isLightOn") !=
-         * null || nbt.getInt("starlight.light_version") == 6);
-         */
-        boolean isLightOn = nbt.getBoolean("isLightOn");
+        boolean isLightOn = Branch_120_6_ChunkRegionLoader.getStatus(nbt) != null
+                && Branch_120_6_ChunkRegionLoader.getStatus(nbt).isOrAfter(ChunkStatus.LIGHT) && nbt.get("isLightOn") != null
+                && nbt.getInt("starlight.light_version") == 9;
         final ListTag sectionArrayNBT = nbt.getList("sections", 10);
         final int sectionsCount = world.getSectionsCount();
         final LevelChunkSection[] sections = new LevelChunkSection[sectionsCount];
@@ -209,36 +205,36 @@ public final class Branch_120_6_ChunkRegionLoader {
 
                 final LevelChunkSection chunkSection = new LevelChunkSection(paletteBlock, paletteBiome);
                 sections[sectionY] = chunkSection;
-                final boolean isBlockLight = sectionNBT.contains("BlockLight", 7);
-                final boolean isSkyLight = isLightOn && sectionNBT.contains("SkyLight", 7);
-                if (isLightOn) {
-                    try {
-                        final int y = sectionNBT.getByte("Y");
-                        if (isBlockLight) {
-                            blockNibbles[y - minSection] = new SWMRNibbleArray((byte[]) sectionNBT.getByteArray("BlockLight").clone(),
-                                    sectionNBT.getInt("starlight.blocklight_state"));
-                        } else {
-                            blockNibbles[y - minSection] = new SWMRNibbleArray((byte[]) null,
-                                    sectionNBT.getInt("starlight.blocklight_state"));
-                        }
-
-                        if (isSkyLight) {
-                            skyNibbles[y - minSection] = new SWMRNibbleArray((byte[]) sectionNBT.getByteArray("SkyLight").clone(),
-                                    sectionNBT.getInt("starlight.skylight_state"));
-                        } else if (isLightOn) {
-                            skyNibbles[y - minSection] = new SWMRNibbleArray((byte[]) null, sectionNBT.getInt("starlight.skylight_state"));
-                        }
-                    } catch (final Exception e) {
-                        isLightOn = false;
-                    }
-                }
-
+                SectionPos.of(chunkPos, sectionY);
             }
+            final boolean isBlockLight = sectionNBT.contains("BlockLight", 7);
+            final boolean isSkyLight = isLightOn && sectionNBT.contains("SkyLight", 7);
+            if (isLightOn) {
+                try {
+                    final int y = sectionNBT.getByte("Y");
+                    if (isBlockLight) {
+                        blockNibbles[y - minSection] = new SWMRNibbleArray((byte[]) sectionNBT.getByteArray("BlockLight").clone(),
+                                sectionNBT.getInt("starlight.blocklight_state"));
+                    } else {
+                        blockNibbles[y - minSection] = new SWMRNibbleArray((byte[]) null, sectionNBT.getInt("starlight.blocklight_state"));
+                    }
+
+                    if (isSkyLight) {
+                        skyNibbles[y - minSection] = new SWMRNibbleArray((byte[]) sectionNBT.getByteArray("SkyLight").clone(),
+                                sectionNBT.getInt("starlight.skylight_state"));
+                    } else if (isLightOn) {
+                        skyNibbles[y - minSection] = new SWMRNibbleArray((byte[]) null, sectionNBT.getInt("starlight.skylight_state"));
+                    }
+                } catch (final Exception e) {
+                    isLightOn = false;
+                }
+            }
+
         }
 
         final long inhabitedTime = nbt.getLong("InhabitedTime");
         final ChunkType chunkType = ChunkSerializer.getChunkTypeFromTag(nbt);
-        BlendingData blendingData;
+        final BlendingData blendingData;
         if (nbt.contains("blending_data", 10)) {
             blendingData = BlendingData.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, nbt.getCompound("blending_data")))
                     .resultOrPartial(sx -> {
@@ -247,7 +243,7 @@ public final class Branch_120_6_ChunkRegionLoader {
             blendingData = null;
         }
 
-        ChunkAccess chunk;
+        final ChunkAccess chunk;
         if (chunkType == ChunkType.LEVELCHUNK) {
             final LevelChunkTicks<Block> ticksBlock = LevelChunkTicks.load(nbt.getList("block_ticks", 10),
                     sx -> BuiltInRegistries.BLOCK.getOptional(ResourceLocation.tryParse(sx)), chunkPos);
