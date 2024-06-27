@@ -13,14 +13,17 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 
 import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
 import ca.spottedleaf.starlight.common.light.StarLightEngine;
+import ca.spottedleaf.starlight.common.util.SaveUtil;
 import io.papermc.paper.util.WorldUtil;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.shorts.ShortList;
+import it.unimi.dsi.fastutil.shorts.ShortListIterator;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -49,6 +52,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.CarvingMask;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -60,7 +64,10 @@ import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.status.ChunkType;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.chunk.storage.ChunkSerializer.AsyncSaveData;
 import net.minecraft.world.level.levelgen.BelowZeroRetrogen;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -82,6 +89,7 @@ public final class Branch_120_6_ChunkRegionLoader {
 
     private static final int CURRENT_DATA_VERSION = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
     private static final boolean JUST_CORRUPT_IT = Boolean.getBoolean("Paper.ignoreWorldDataVersion");
+    public static final Codec<PalettedContainer<BlockState>> BLOCK_STATE_CODEC = ChunkSerializer.BLOCK_STATE_CODEC;
 
     public static BranchChunk.Status loadStatus(final CompoundTag nbt) {
         try {
@@ -156,13 +164,9 @@ public final class Branch_120_6_ChunkRegionLoader {
 
         final SWMRNibbleArray[] blockNibbles = StarLightEngine.getFilledEmptyLight(world);
         final SWMRNibbleArray[] skyNibbles = StarLightEngine.getFilledEmptyLight(world);
-        final int minSection = WorldUtil.getMinLightSection(world);
-        final int maxSection = WorldUtil.getMaxLightSection(world);
-        final boolean canReadSky = world.dimensionType().hasSkyLight();
+        final int minSection = world.getMinSection() - 1;
         final Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registries.BIOME);
         final Codec<PalettedContainer<Holder<Biome>>> paletteCodec = Branch_120_6_ChunkRegionLoader.makeBiomeCodecRW(biomeRegistry);
-
-        final boolean flag2 = false;
 
         for (int sectionIndex = 0; sectionIndex < sectionArrayNBT.size(); ++sectionIndex) {
             final CompoundTag sectionNBT = sectionArrayNBT.getCompound(sectionIndex);
@@ -233,7 +237,7 @@ public final class Branch_120_6_ChunkRegionLoader {
         }
 
         final long inhabitedTime = nbt.getLong("InhabitedTime");
-        final ChunkType chunkType = ChunkSerializer.getChunkTypeFromTag(nbt);
+        final ChunkType chunkType = Branch_120_6_ChunkRegionLoader.getChunkTypeFromTag(nbt);
         final BlendingData blendingData;
         if (nbt.contains("blending_data", 10)) {
             blendingData = BlendingData.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, nbt.getCompound("blending_data")))
@@ -243,7 +247,7 @@ public final class Branch_120_6_ChunkRegionLoader {
             blendingData = null;
         }
 
-        final ChunkAccess chunk;
+        Object chunk;
         if (chunkType == ChunkType.LEVELCHUNK) {
             final LevelChunkTicks<Block> ticksBlock = LevelChunkTicks.load(nbt.getList("block_ticks", 10),
                     sx -> BuiltInRegistries.BLOCK.getOptional(ResourceLocation.tryParse(sx)), chunkPos);
@@ -252,8 +256,8 @@ public final class Branch_120_6_ChunkRegionLoader {
             final LevelChunk levelChunk = new LevelChunk(world.getLevel(), chunkPos, upgradeData, ticksBlock, ticksFluid, inhabitedTime,
                     sections, Branch_120_6_ChunkRegionLoader.postLoadChunk(world, nbt), blendingData);
             chunk = levelChunk;
-            chunk.setBlockNibbles(blockNibbles);
-            chunk.setSkyNibbles(skyNibbles);
+            ((LevelChunk) chunk).setBlockNibbles(blockNibbles);
+            ((LevelChunk) chunk).setSkyNibbles(skyNibbles);
 
         } else {
             final ProtoChunkTicks<Block> ticksBlock = ProtoChunkTicks.load(nbt.getList("block_ticks", 10),
@@ -263,9 +267,9 @@ public final class Branch_120_6_ChunkRegionLoader {
             final ProtoChunk protochunk = new ProtoChunk(chunkPos, upgradeData, sections, ticksBlock, ticksFluid, world, biomeRegistry,
                     blendingData);
             chunk = protochunk;
-            chunk.setBlockNibbles(blockNibbles);
-            chunk.setSkyNibbles(skyNibbles);
-            chunk.setInhabitedTime(inhabitedTime);
+            ((ProtoChunk) chunk).setBlockNibbles(blockNibbles);
+            ((ProtoChunk) chunk).setSkyNibbles(skyNibbles);
+            ((ProtoChunk) chunk).setInhabitedTime(inhabitedTime);
             if (nbt.contains("below_zero_retrogen", 10)) {
                 BelowZeroRetrogen.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, nbt.getCompound("below_zero_retrogen")))
                         .resultOrPartial(sx -> {
@@ -278,25 +282,27 @@ public final class Branch_120_6_ChunkRegionLoader {
                 ((ProtoChunk) chunk).setLightEngine(lightEngine);
             }
         }
+
         final Tag persistentBase = nbt.get("ChunkBukkitValues");
         if (persistentBase instanceof CompoundTag) {
             ((ChunkAccess) chunk).persistentDataContainer.putAll((CompoundTag) persistentBase);
         }
 
-        chunk.setLightCorrect(isLightOn);
-
-        // 高度圖
-        final CompoundTag heightmapsNBT = nbt.getCompound("Heightmaps");
+        ((ChunkAccess) chunk).setLightCorrect(isLightOn);
+        final CompoundTag nbttagcompound2 = nbt.getCompound("Heightmaps");
         final EnumSet<Heightmap.Types> enumHeightmapType = EnumSet.noneOf(Heightmap.Types.class);
-        for (final Heightmap.Types heightmapTypes : chunk.getStatus().heightmapsAfter()) {
-            final String serializationKey = heightmapTypes.getSerializationKey();
-            if (heightmapsNBT.contains(serializationKey, 12)) {
-                chunk.setHeightmap(heightmapTypes, heightmapsNBT.getLongArray(serializationKey));
+        final Iterator iterator = ((ChunkAccess) chunk).getStatus().heightmapsAfter().iterator();
+
+        while (iterator.hasNext()) {
+            final Heightmap.Types heightmap_type = (Heightmap.Types) iterator.next();
+            final String s = heightmap_type.getSerializationKey();
+            if (nbttagcompound2.contains(s, 12)) {
+                ((ChunkAccess) chunk).setHeightmap(heightmap_type, nbttagcompound2.getLongArray(s));
             } else {
-                enumHeightmapType.add(heightmapTypes);
+                enumHeightmapType.add(heightmap_type);
             }
         }
-        Heightmap.primeHeightmaps(chunk, enumHeightmapType);
+        Heightmap.primeHeightmaps((ChunkAccess) chunk, enumHeightmapType);
 
         final CompoundTag nbttagcompound3 = nbt.getCompound("structures");
         ((ChunkAccess) chunk).setAllStarts(Branch_120_6_ChunkRegionLoader
@@ -311,73 +317,21 @@ public final class Branch_120_6_ChunkRegionLoader {
         for (int indexList = 0; indexList < processListNBT.size(); ++indexList) {
             final ListTag processNBT = processListNBT.getList(indexList);
             for (int index = 0; index < processNBT.size(); ++index) {
-                chunk.addPackedPostProcess(processNBT.getShort(index), indexList);
+                ((ChunkAccess) chunk).addPackedPostProcess(processNBT.getShort(index), indexList);
             }
         }
 
         if (chunkType == ChunkType.LEVELCHUNK) {
-            return new Branch_120_6_Chunk(world, (LevelChunk) chunk);
+            return new Branch_120_6_Chunk(world, (LevelChunk) chunk, nbt);
         } else {
             final ProtoChunk protoChunk = (ProtoChunk) chunk;
             return new Branch_120_6_Chunk(world, new LevelChunk(world, protoChunk, v -> {
-            }));
+            }), nbt);
         }
     }
 
-    private static Map<Structure, StructureStart> unpackStructureStart(final StructurePieceSerializationContext context,
-            final CompoundTag nbt, final long worldSeed) {
-        final Map<Structure, StructureStart> map = Maps.newHashMap();
-        final Registry<Structure> iregistry = context.registryAccess().registryOrThrow(Registries.STRUCTURE);
-        final CompoundTag nbttagcompound1 = nbt.getCompound("starts");
-        final Iterator iterator = nbttagcompound1.getAllKeys().iterator();
-
-        while (iterator.hasNext()) {
-            final String s = (String) iterator.next();
-            final ResourceLocation minecraftkey = ResourceLocation.tryParse(s);
-            final Structure structure = (Structure) iregistry.get(minecraftkey);
-            if (structure != null) {
-                final StructureStart structurestart = StructureStart.loadStaticStart(context, nbttagcompound1.getCompound(s), worldSeed);
-                if (structurestart != null) {
-                    final Tag persistentBase = nbttagcompound1.getCompound(s).get("StructureBukkitValues");
-                    if (persistentBase instanceof CompoundTag) {
-                        structurestart.persistentDataContainer.putAll((CompoundTag) persistentBase);
-                    }
-
-                    map.put(structure, structurestart);
-                }
-            }
-        }
-
-        return map;
-    }
-
-    private static Map<Structure, LongSet> unpackStructureReferences(final RegistryAccess registryManager, final ChunkPos pos,
-            final CompoundTag nbt) {
-        final Map<Structure, LongSet> map = Maps.newHashMap();
-        final Registry<Structure> iregistry = registryManager.registryOrThrow(Registries.STRUCTURE);
-        final CompoundTag nbttagcompound1 = nbt.getCompound("References");
-        final Iterator iterator = nbttagcompound1.getAllKeys().iterator();
-
-        while (iterator.hasNext()) {
-            final String s = (String) iterator.next();
-            final ResourceLocation minecraftkey = ResourceLocation.tryParse(s);
-            final Structure structure = (Structure) iregistry.get(minecraftkey);
-            if (structure != null) {
-                final long[] along = nbttagcompound1.getLongArray(s);
-                if (along.length != 0) {
-                    map.put(structure, new LongOpenHashSet(Arrays.stream(along).filter(i -> {
-                        final ChunkPos chunkcoordintpair1 = new ChunkPos(i);
-                        if (chunkcoordintpair1.getChessboardDistance(pos) > 8) {
-                            return false;
-                        } else {
-                            return true;
-                        }
-                    }).toArray()));
-                }
-            }
-        }
-
-        return map;
+    public static ChunkType getChunkTypeFromTag(@javax.annotation.Nullable final CompoundTag nbt) {
+        return nbt != null ? ChunkStatus.byName(nbt.getString("Status")).getChunkType() : ChunkType.PROTOCHUNK;
     }
 
     @Nullable
@@ -459,7 +413,255 @@ public final class Branch_120_6_ChunkRegionLoader {
         return chunkLight;
     }
 
+    public static CompoundTag saveChunk(final ServerLevel world, final ChunkAccess chunk, @Nullable final AsyncSaveData asyncsavedata) {
+        final int minSection = WorldUtil.getMinLightSection(world);
+        final int maxSection = WorldUtil.getMaxLightSection(world);
+        final SWMRNibbleArray[] blockNibbles = chunk.getBlockNibbles();
+        final SWMRNibbleArray[] skyNibbles = chunk.getSkyNibbles();
+        final ChunkPos chunkcoordintpair = chunk.getPos();
+        final CompoundTag nbttagcompound = NbtUtils.addCurrentDataVersion(new CompoundTag());
+        nbttagcompound.putInt("xPos", chunkcoordintpair.x);
+        nbttagcompound.putInt("yPos", chunk.getMinSection());
+        nbttagcompound.putInt("zPos", chunkcoordintpair.z);
+        nbttagcompound.putLong("LastUpdate", world.getGameTime());
+        nbttagcompound.putLong("InhabitedTime", chunk.getInhabitedTime());
+        nbttagcompound.putString("Status", BuiltInRegistries.CHUNK_STATUS.getKey(chunk.getStatus()).toString());
+        final BlendingData blendingdata = chunk.getBlendingData();
+        DataResult dataresult;
+        if (blendingdata != null) {
+            dataresult = BlendingData.CODEC.encodeStart(NbtOps.INSTANCE, blendingdata);
+            dataresult.resultOrPartial(Branch_120_6_NothingException::new).ifPresent(nbtbase -> {
+                nbttagcompound.put("blending_data", (Tag) nbtbase);
+            });
+        }
+
+        final BelowZeroRetrogen belowzeroretrogen = chunk.getBelowZeroRetrogen();
+        if (belowzeroretrogen != null) {
+            dataresult = BelowZeroRetrogen.CODEC.encodeStart(NbtOps.INSTANCE, belowzeroretrogen);
+            dataresult.resultOrPartial(Branch_120_6_NothingException::new).ifPresent(nbtbase -> {
+                nbttagcompound.put("below_zero_retrogen", (Tag) nbtbase);
+            });
+        }
+
+        final UpgradeData chunkconverter = chunk.getUpgradeData();
+        if (!chunkconverter.isEmpty()) {
+            nbttagcompound.put("UpgradeData", chunkconverter.write());
+        }
+
+        final LevelChunkSection[] achunksection = chunk.getSections();
+        final ListTag nbttaglist = new ListTag();
+        final ThreadedLevelLightEngine lightenginethreaded = world.getChunkSource().getLightEngine();
+        final Registry<Biome> iregistry = world.registryAccess().registryOrThrow(Registries.BIOME);
+        final Codec<PalettedContainerRO<Holder<Biome>>> codec = Branch_120_6_ChunkRegionLoader.makeBiomeCodec(iregistry);
+        final boolean flag = chunk.isLightCorrect();
+
+        for (int i = lightenginethreaded.getMinLightSection(); i < lightenginethreaded.getMaxLightSection(); ++i) {
+            final int j = chunk.getSectionIndexFromSectionY(i);
+            final boolean flag1 = j >= 0 && j < achunksection.length;
+            final SWMRNibbleArray.SaveState blockNibble = blockNibbles[i - minSection].getSaveState();
+            final SWMRNibbleArray.SaveState skyNibble = skyNibbles[i - minSection].getSaveState();
+            if (flag1 || blockNibble != null || skyNibble != null) {
+                final CompoundTag nbttagcompound1 = new CompoundTag();
+                if (flag1) {
+                    final LevelChunkSection chunksection = achunksection[j];
+                    nbttagcompound1.put("block_states", (Tag) Branch_120_6_ChunkRegionLoader.BLOCK_STATE_CODEC
+                            .encodeStart(NbtOps.INSTANCE, chunksection.getStates()).getOrThrow());
+                    nbttagcompound1.put("biomes", (Tag) codec.encodeStart(NbtOps.INSTANCE, chunksection.getBiomes()).getOrThrow());
+                }
+
+                if (blockNibble != null) {
+                    if (blockNibble.data != null) {
+                        nbttagcompound1.putByteArray("BlockLight", blockNibble.data);
+                    }
+
+                    nbttagcompound1.putInt("starlight.blocklight_state", blockNibble.state);
+                }
+
+                if (skyNibble != null) {
+                    if (skyNibble.data != null) {
+                        nbttagcompound1.putByteArray("SkyLight", skyNibble.data);
+                    }
+
+                    nbttagcompound1.putInt("starlight.skylight_state", skyNibble.state);
+                }
+
+                if (!nbttagcompound1.isEmpty()) {
+                    nbttagcompound1.putByte("Y", (byte) i);
+                    nbttaglist.add(nbttagcompound1);
+                }
+            }
+        }
+
+        nbttagcompound.put("sections", nbttaglist);
+        if (flag) {
+            nbttagcompound.putInt("starlight.light_version", 9);
+            nbttagcompound.putBoolean("isLightOn", false);
+        }
+
+        ListTag nbttaglist1;
+        Iterator iterator;
+        nbttaglist1 = new ListTag();
+        iterator = chunk.getBlockEntitiesPos().iterator();
+
+        CompoundTag nbttagcompound2;
+        while (iterator.hasNext()) {
+            final BlockPos blockposition = (BlockPos) iterator.next();
+            nbttagcompound2 = chunk.getBlockEntityNbtForSaving(blockposition, world.registryAccess());
+            if (nbttagcompound2 != null) {
+                nbttaglist1.add(nbttagcompound2);
+            }
+        }
+
+        nbttagcompound.put("block_entities", nbttaglist1);
+        if (chunk.getStatus().getChunkType() == ChunkType.PROTOCHUNK) {
+            final ProtoChunk protochunk = (ProtoChunk) chunk;
+            final ListTag nbttaglist2 = new ListTag();
+            nbttaglist2.addAll(protochunk.getEntities());
+            nbttagcompound.put("entities", nbttaglist2);
+            nbttagcompound2 = new CompoundTag();
+            final GenerationStep.Carving[] aworldgenstage_features = Carving.values();
+            final int k = aworldgenstage_features.length;
+
+            for (int l = 0; l < k; ++l) {
+                final GenerationStep.Carving worldgenstage_features = aworldgenstage_features[l];
+                final CarvingMask carvingmask = protochunk.getCarvingMask(worldgenstage_features);
+                if (carvingmask != null) {
+                    nbttagcompound2.putLongArray(worldgenstage_features.toString(), carvingmask.toArray());
+                }
+            }
+
+            nbttagcompound.put("CarvingMasks", nbttagcompound2);
+        }
+
+        Branch_120_6_ChunkRegionLoader.saveTicks(world, nbttagcompound, chunk.getTicksForSerialization());
+
+        nbttagcompound.put("PostProcessing", Branch_120_6_ChunkRegionLoader.packOffsets(chunk.getPostProcessing()));
+        final CompoundTag nbttagcompound3 = new CompoundTag();
+        final Iterator iterator1 = chunk.getHeightmaps().iterator();
+
+        while (iterator1.hasNext()) {
+            final Map.Entry<Heightmap.Types, Heightmap> entry = (Map.Entry) iterator1.next();
+            if (chunk.getStatus().heightmapsAfter().contains(entry.getKey())) {
+                nbttagcompound3.put(((Heightmap.Types) entry.getKey()).getSerializationKey(),
+                        new LongArrayTag(((Heightmap) entry.getValue()).getRawData()));
+            }
+        }
+
+        nbttagcompound.put("Heightmaps", nbttagcompound3);
+        nbttagcompound.put("structures", Branch_120_6_ChunkRegionLoader.packStructureData(
+                StructurePieceSerializationContext.fromLevel(world), chunkcoordintpair, chunk.getAllStarts(), chunk.getAllReferences()));
+        if (!chunk.persistentDataContainer.isEmpty()) {
+            nbttagcompound.put("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound());
+        }
+
+        return nbttagcompound;
+    }
+
+    private static CompoundTag packStructureData(final StructurePieceSerializationContext context, final ChunkPos pos,
+            final Map<Structure, StructureStart> starts, final Map<Structure, LongSet> references) {
+        final CompoundTag nbttagcompound = new CompoundTag();
+        final CompoundTag nbttagcompound1 = new CompoundTag();
+        final Registry<Structure> iregistry = context.registryAccess().registryOrThrow(Registries.STRUCTURE);
+        final Iterator iterator = starts.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            final Map.Entry<Structure, StructureStart> entry = (Map.Entry) iterator.next();
+            final ResourceLocation minecraftkey = iregistry.getKey((Structure) entry.getKey());
+            nbttagcompound1.put(minecraftkey.toString(), ((StructureStart) entry.getValue()).createTag(context, pos));
+        }
+
+        nbttagcompound.put("starts", nbttagcompound1);
+        final CompoundTag nbttagcompound2 = new CompoundTag();
+        final Iterator iterator1 = references.entrySet().iterator();
+
+        while (iterator1.hasNext()) {
+            final Map.Entry<Structure, LongSet> entry1 = (Map.Entry) iterator1.next();
+            if (!((LongSet) entry1.getValue()).isEmpty()) {
+                final ResourceLocation minecraftkey1 = iregistry.getKey((Structure) entry1.getKey());
+                nbttagcompound2.put(minecraftkey1.toString(), new LongArrayTag((LongSet) entry1.getValue()));
+            }
+        }
+
+        nbttagcompound.put("References", nbttagcompound2);
+        return nbttagcompound;
+    }
+
+    private static Map<Structure, StructureStart> unpackStructureStart(final StructurePieceSerializationContext context,
+            final CompoundTag nbt, final long worldSeed) {
+        final Map<Structure, StructureStart> map = Maps.newHashMap();
+        final Registry<Structure> iregistry = context.registryAccess().registryOrThrow(Registries.STRUCTURE);
+        final CompoundTag nbttagcompound1 = nbt.getCompound("starts");
+        final Iterator iterator = nbttagcompound1.getAllKeys().iterator();
+
+        while (iterator.hasNext()) {
+            final String s = (String) iterator.next();
+            final ResourceLocation minecraftkey = ResourceLocation.tryParse(s);
+            final Structure structure = (Structure) iregistry.get(minecraftkey);
+            if (structure == null) {
+            } else {
+                final StructureStart structurestart = StructureStart.loadStaticStart(context, nbttagcompound1.getCompound(s), worldSeed);
+                if (structurestart != null) {
+                    final Tag persistentBase = nbttagcompound1.getCompound(s).get("StructureBukkitValues");
+                    if (persistentBase instanceof CompoundTag) {
+                        structurestart.persistentDataContainer.putAll((CompoundTag) persistentBase);
+                    }
+
+                    map.put(structure, structurestart);
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private static Map<Structure, LongSet> unpackStructureReferences(final RegistryAccess registryManager, final ChunkPos pos,
+            final CompoundTag nbt) {
+        final Map<Structure, LongSet> map = Maps.newHashMap();
+        final Registry<Structure> iregistry = registryManager.registryOrThrow(Registries.STRUCTURE);
+        final CompoundTag nbttagcompound1 = nbt.getCompound("References");
+        final Iterator iterator = nbttagcompound1.getAllKeys().iterator();
+
+        while (iterator.hasNext()) {
+            final String s = (String) iterator.next();
+            final ResourceLocation minecraftkey = ResourceLocation.tryParse(s);
+            final Structure structure = (Structure) iregistry.get(minecraftkey);
+            if (structure == null) {
+
+            } else {
+                final long[] along = nbttagcompound1.getLongArray(s);
+                if (along.length != 0) {
+                    map.put(structure, new LongOpenHashSet(Arrays.stream(along).filter(i -> {
+                        final ChunkPos chunkcoordintpair1 = new ChunkPos(i);
+                        if (chunkcoordintpair1.getChessboardDistance(pos) > 8) {
+
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }).toArray()));
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private static void saveTicks(final ServerLevel world, final CompoundTag nbt, final ChunkAccess.TicksToSave tickSchedulers) {
+        final long i = world.getLevelData().getGameTime();
+        nbt.put("block_ticks", tickSchedulers.blocks().save(i, block -> BuiltInRegistries.BLOCK.getKey(block).toString()));
+        nbt.put("fluid_ticks", tickSchedulers.fluids().save(i, fluidtype -> BuiltInRegistries.FLUID.getKey(fluidtype).toString()));
+    }
+
     public static CompoundTag saveChunk(final ServerLevel world, final ChunkAccess chunk, final Branch_120_6_ChunkLight light,
+            final List<Runnable> asyncRunnable) {
+
+        final CompoundTag finalnbt = Branch_120_6_ChunkRegionLoader.saveChunk(world, chunk, null);
+        SaveUtil.saveLightHook(world, (ChunkAccess) chunk, finalnbt);
+
+        return finalnbt;
+    }
+
+    public static CompoundTag saveChunkOld(final ServerLevel world, final ChunkAccess chunk, final Branch_120_6_ChunkLight light,
             final List<Runnable> asyncRunnable) {
         final int minSection = world.getMinSection() - 1; // WorldUtil.getMinLightSection();
         final SWMRNibbleArray[] blockNibbles = chunk.getBlockNibbles();
@@ -561,7 +763,7 @@ public final class Branch_120_6_ChunkRegionLoader {
         nbt.put("sections", sectionArrayNBT);
 
         if (lightCorrect) {
-            nbt.putInt("starlight.light_version", 6);
+            nbt.putInt("starlight.light_version", 9);
             nbt.putBoolean("isLightOn", true);
         }
 
@@ -607,4 +809,28 @@ public final class Branch_120_6_ChunkRegionLoader {
 
         return nbt;
     }
+
+    public static ListTag packOffsets(final ShortList[] lists) {
+        final ListTag nbttaglist = new ListTag();
+        final ShortList[] ashortlist1 = lists;
+        final int i = lists.length;
+
+        for (int j = 0; j < i; ++j) {
+            final ShortList shortlist = ashortlist1[j];
+            final ListTag nbttaglist1 = new ListTag();
+            if (shortlist != null) {
+                final ShortListIterator shortlistiterator = shortlist.iterator();
+
+                while (shortlistiterator.hasNext()) {
+                    final Short oshort = shortlistiterator.next();
+                    nbttaglist1.add(ShortTag.valueOf(oshort));
+                }
+            }
+
+            nbttaglist.add(nbttaglist1);
+        }
+
+        return nbttaglist;
+    }
+
 }

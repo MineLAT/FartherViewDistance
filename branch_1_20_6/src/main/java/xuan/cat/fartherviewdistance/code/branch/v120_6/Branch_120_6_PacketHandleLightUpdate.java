@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.VarInt;
 
 public final class Branch_120_6_PacketHandleLightUpdate {
 
     public Branch_120_6_PacketHandleLightUpdate() {}
 
-    public void write(final FriendlyByteBuf serializer, final Branch_120_6_ChunkLight light) {
+    public void write(final RegistryFriendlyByteBuf serializer, final Branch_120_6_ChunkLight light) {
         final List<byte[]> dataSky = new ArrayList<>();
         final List<byte[]> dataBlock = new ArrayList<>();
         final BitSet notSkyEmpty = new BitSet();

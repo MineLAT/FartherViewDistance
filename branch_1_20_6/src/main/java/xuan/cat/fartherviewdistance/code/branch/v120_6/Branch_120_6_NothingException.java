@@ -7,4 +7,8 @@ public class Branch_120_6_NothingException extends RuntimeException {
     Branch_120_6_NothingException(final String s) {
         // Does nothing
     }
+
+    Branch_120_6_NothingException(final Object s) {
+        // Does nothing
+    }
 }

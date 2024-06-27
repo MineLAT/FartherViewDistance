@@ -2,12 +2,14 @@ package xuan.cat.fartherviewdistance.code.branch.v120_6;
 
 import java.util.function.Consumer;
 
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundKeepAlivePacket;
 import net.minecraft.network.protocol.game.ClientboundForgetLevelChunkPacket;
@@ -45,7 +47,8 @@ public final class Branch_120_6_Packet implements BranchPacket {
     @Override
     public Consumer<Player> sendChunkAndLight(final BranchChunk chunk, final BranchChunkLight light, final boolean needTile,
             final Consumer<Integer> consumeTraffic) {
-        final FriendlyByteBuf serializer = new FriendlyByteBuf(Unpooled.buffer().writerIndex(0));
+        final RegistryFriendlyByteBuf serializer = new RegistryFriendlyByteBuf(Unpooled.buffer().writerIndex(0),
+                ((CraftServer) Bukkit.getServer()).getServer().registryAccess());
         final LevelLightEngine levelLight = ((Branch_120_6_Chunk) chunk).getLevelChunk().level.getLightEngine();
         serializer.writeInt(chunk.getX());
         serializer.writeInt(chunk.getZ());

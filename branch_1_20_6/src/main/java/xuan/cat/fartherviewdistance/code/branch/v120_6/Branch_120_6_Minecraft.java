@@ -11,6 +11,7 @@ import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import ca.spottedleaf.starlight.common.util.SaveUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -89,7 +90,11 @@ public final class Branch_120_6_Minecraft implements BranchMinecraft {
      */
     @Override
     public BranchChunkLight fromLight(final World world, final BranchNBT nbt) {
-        return Branch_120_6_ChunkRegionLoader.loadLight(((CraftWorld) world).getHandle(), ((Branch_120_6_NBT) nbt).getNMSTag());
+        final ServerLevel level = ((CraftWorld) world).getHandle();
+        final CompoundTag aaa = ((Branch_120_6_NBT) nbt).getNMSTag();
+        final ChunkPos pos = new ChunkPos(aaa.getInt("xPos"), aaa.getInt("zPos"));
+        SaveUtil.loadLightHook(level, pos, aaa, level.getChunk(pos.getMiddleBlockPosition(0)));
+        return Branch_120_6_ChunkRegionLoader.loadLight(level, ((Branch_120_6_NBT) nbt).getNMSTag());
     }
 
     /**

@@ -20,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -40,14 +41,25 @@ public final class Branch_120_6_Chunk implements BranchChunk {
 
     private final LevelChunk levelChunk;
     private final ServerLevel worldServer;
+    public final CompoundTag nbt;
 
     public Branch_120_6_Chunk(final ServerLevel worldServer, final LevelChunk levelChunk) {
         this.levelChunk = levelChunk;
         this.worldServer = worldServer;
+        this.nbt = null;
+    }
+
+    public Branch_120_6_Chunk(final ServerLevel worldServer, final LevelChunk levelChunk, final CompoundTag nbt) {
+        this.levelChunk = levelChunk;
+        this.worldServer = worldServer;
+        this.nbt = nbt;
     }
 
     @Override
     public BranchNBT toNBT(final BranchChunkLight light, final List<Runnable> asyncRunnable) {
+        if (this.nbt != null)
+            return new Branch_120_6_NBT(this.nbt);
+
         return new Branch_120_6_NBT(Branch_120_6_ChunkRegionLoader.saveChunk(this.worldServer, this.levelChunk,
                 (Branch_120_6_ChunkLight) light, asyncRunnable));
     }
@@ -263,10 +275,12 @@ public final class Branch_120_6_Chunk implements BranchChunk {
             return BranchChunk.Status.CARVERS;
         } else if (chunkStatus == ChunkStatus.FEATURES) {
             return BranchChunk.Status.FEATURES;
-        } else if (chunkStatus == ChunkStatus.LIGHT) {
+        } else if (chunkStatus == ChunkStatus.INITIALIZE_LIGHT) {
             return BranchChunk.Status.LIGHT;
-        } else if (chunkStatus == ChunkStatus.SPAWN) {
+        } else if (chunkStatus == ChunkStatus.LIGHT) {
             return BranchChunk.Status.SPAWN;
+        } else if (chunkStatus == ChunkStatus.SPAWN) {
+            return BranchChunk.Status.HEIGHTMAPS;
         } else {
             return chunkStatus == ChunkStatus.FULL ? BranchChunk.Status.FULL : BranchChunk.Status.EMPTY;
         }

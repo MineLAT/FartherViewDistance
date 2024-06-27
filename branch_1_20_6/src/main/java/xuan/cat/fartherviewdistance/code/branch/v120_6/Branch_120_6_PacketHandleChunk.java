@@ -3,13 +3,16 @@ package xuan.cat.fartherviewdistance.code.branch.v120_6;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.CraftServer;
+
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -19,7 +22,7 @@ public final class Branch_120_6_PacketHandleChunk {
 
     public Branch_120_6_PacketHandleChunk() {}
 
-    public void write(final FriendlyByteBuf serializer, final LevelChunk chunk, final boolean needTile) {
+    public void write(final RegistryFriendlyByteBuf serializer, final LevelChunk chunk, final boolean needTile) {
         final CompoundTag heightmapsNBT = new CompoundTag();
         for (final Map.Entry<Heightmap.Types, Heightmap> entry : chunk.getHeightmaps()) {
             final Heightmap.Types heightType = entry.getKey();
@@ -33,7 +36,9 @@ public final class Branch_120_6_PacketHandleChunk {
             chunkSize += section.getSerializedSize();
         }
         final byte[] bufferBytes = new byte[chunkSize];
-        final FriendlyByteBuf bufferByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bufferBytes));
+        final RegistryFriendlyByteBuf bufferByteBuf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bufferBytes),
+                ((CraftServer) Bukkit.getServer()).getServer().registryAccess());
+
         bufferByteBuf.writerIndex(0);
         for (final LevelChunkSection section : chunk.getSections()) {
             section.write(bufferByteBuf, null, 0);
