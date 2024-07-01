@@ -5,22 +5,14 @@ import xuan.cat.fartherviewdistance.api.branch.BranchNBT;
 
 public final class Branch_120_4_NBT implements BranchNBT {
 
-  protected CompoundTag tag;
+    protected CompoundTag tag;
 
-  public Branch_120_4_NBT() {
-    this.tag = new CompoundTag();
-  }
+    public Branch_120_4_NBT() { this.tag = new CompoundTag(); }
 
-  public Branch_120_4_NBT(CompoundTag tag) {
-    this.tag = tag;
-  }
+    public Branch_120_4_NBT(final CompoundTag tag) { this.tag = tag; }
 
-  public CompoundTag getNMSTag() {
-    return tag;
-  }
+    public CompoundTag getNMSTag() { return this.tag; }
 
-  @Override
-  public String toString() {
-    return tag.toString();
-  }
+    @Override
+    public String toString() { return this.tag.toString(); }
 }

@@ -108,6 +108,8 @@ public final class ChunkIndex extends JavaPlugin {
                     ChunkIndex.branchPacket);
         } else if (bukkitVersion.equals("v1_20_R3") || bukkitVersion.equals("v1_20_R4")) {
             // 1.20.3 || // 1.20.4
+            this.plugin.getLogger().warning(
+                    "Use a newer version or downgrade to 1.20.2 - This version's client misunderstand some server packets, and may cause unintended disconnects.");
             ChunkIndex.branchPacket = new Branch_120_4_Packet();
             ChunkIndex.branchMinecraft = new Branch_120_4_Minecraft();
             ChunkIndex.chunkServer = new ChunkServer(ChunkIndex.configData, (Plugin) this, ViewShape.ROUND, ChunkIndex.branchMinecraft,

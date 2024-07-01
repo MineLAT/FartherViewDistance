@@ -16,10 +16,7 @@ import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 
-import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
-import ca.spottedleaf.moonrise.patches.starlight.light.StarLightEngine;
 import ca.spottedleaf.moonrise.patches.starlight.util.SaveUtil;
-import io.papermc.paper.util.WorldUtil;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.shorts.ShortList;
@@ -84,7 +81,7 @@ import xuan.cat.fartherviewdistance.api.branch.BranchChunkLight;
 /**
  * @see ChunkSerializer 參考 XuanCatAPI.CodeExtendChunkLight
  */
-@SuppressWarnings({ "unchecked" })
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public final class Branch_121_ChunkRegionLoader {
 
     private static final int CURRENT_DATA_VERSION = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
@@ -157,9 +154,7 @@ public final class Branch_121_ChunkRegionLoader {
         final ServerChunkCache chunkSource = world.getChunkSource();
         final LevelLightEngine lightEngine = chunkSource.getLightEngine();
 
-        final SWMRNibbleArray[] blockNibbles = StarLightEngine.getFilledEmptyLight(world);
-        final SWMRNibbleArray[] skyNibbles = StarLightEngine.getFilledEmptyLight(world);
-        final int minSection = WorldUtil.getMinLightSection(world);
+        final int minLightSection = world.getMinSection() - 1;
 
         final Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registries.BIOME);
         final Codec<PalettedContainer<Holder<Biome>>> paletteCodec = Branch_121_ChunkRegionLoader.makeBiomeCodecRW(biomeRegistry);
