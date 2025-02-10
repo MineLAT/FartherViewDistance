@@ -2,8 +2,8 @@ package xuan.cat.fartherviewdistance.api;
 
 import org.bukkit.entity.Player;
 import xuan.cat.fartherviewdistance.api.data.PlayerView;
-import xuan.cat.fartherviewdistance.code.ChunkIndex;
-import xuan.cat.fartherviewdistance.code.data.PlayerChunkView;
+import xuan.cat.fartherviewdistance.FVD;
+import xuan.cat.fartherviewdistance.core.data.PlayerChunkView;
 
 public final class ViewDistance {
     private ViewDistance() {
@@ -11,7 +11,7 @@ public final class ViewDistance {
 
 
     public static PlayerView getPlayerView(Player player) {
-        PlayerChunkView view = ChunkIndex.getChunkServer().getView(player);
+        PlayerChunkView view = FVD.getChunkServer().getView(player);
         return view != null ? view.viewAPI : null;
     }
 }

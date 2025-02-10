@@ -3,7 +3,7 @@ package xuan.cat.fartherviewdistance.api.event;
 import org.bukkit.World;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import xuan.cat.fartherviewdistance.api.branch.BranchChunk;
+import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.data.PlayerView;
 
 /**
@@ -13,18 +13,18 @@ public final class PlayerSendExtendChunkEvent extends ExtendChunkEvent implement
     private static final HandlerList handlers = new HandlerList();
 
     private       boolean       cancel  = false;
-    private final BranchChunk   chunk;
+    private final ServerChunk chunk;
     private final World         world;
 
 
-    public PlayerSendExtendChunkEvent(PlayerView view, BranchChunk chunk, World world) {
+    public PlayerSendExtendChunkEvent(PlayerView view, ServerChunk chunk, World world) {
         super(view);
         this.chunk  = chunk;
         this.world  = world;
     }
 
 
-    public BranchChunk getChunk() {
+    public ServerChunk getChunk() {
         return chunk;
     }
 

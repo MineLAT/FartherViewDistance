@@ -3,7 +3,7 @@ package xuan.cat.fartherviewdistance.api.data;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import xuan.cat.fartherviewdistance.code.data.PlayerChunkView;
+import xuan.cat.fartherviewdistance.core.data.PlayerChunkView;
 
 public final class PlayerView {
     private final PlayerChunkView chunkView;
