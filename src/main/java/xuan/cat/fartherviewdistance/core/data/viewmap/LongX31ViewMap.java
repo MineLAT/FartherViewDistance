@@ -41,13 +41,21 @@ public final class LongX31ViewMap extends ViewMap {
 
 
      */
-    /** 距離 */
+    /**
+     * 距離
+     */
     private static final int DISTANCE = 32;
-    /** 中心 */
+    /**
+     * 中心
+     */
     private static final int CENTER = 31;
-    /** 長度 */
+    /**
+     * 長度
+     */
     private static final int LENGTH = 63;
-    /** 視圖計算 */
+    /**
+     * 視圖計算
+     */
     private final long[] chunkMap = new long[LENGTH];
 
 
@@ -562,7 +570,7 @@ public final class LongX31ViewMap extends ViewMap {
         for (int i = LENGTH; i >= 0; i--) {
             builder.append((value >> i & 1) == 1 ? '■' : '□');
         }
-       return builder.toString();
+        return builder.toString();
     }
 
     public void debug(CommandSender sender) {

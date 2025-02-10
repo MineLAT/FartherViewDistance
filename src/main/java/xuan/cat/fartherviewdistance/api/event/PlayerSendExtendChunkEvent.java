@@ -3,8 +3,8 @@ package xuan.cat.fartherviewdistance.api.event;
 import org.bukkit.World;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.data.PlayerView;
+import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 
 /**
  * 發送延伸的區塊給玩家時
@@ -12,15 +12,15 @@ import xuan.cat.fartherviewdistance.api.data.PlayerView;
 public final class PlayerSendExtendChunkEvent extends ExtendChunkEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
-    private       boolean       cancel  = false;
+    private boolean cancel = false;
     private final ServerChunk chunk;
-    private final World         world;
+    private final World world;
 
 
     public PlayerSendExtendChunkEvent(PlayerView view, ServerChunk chunk, World world) {
         super(view);
-        this.chunk  = chunk;
-        this.world  = world;
+        this.chunk = chunk;
+        this.world = world;
     }
 
 

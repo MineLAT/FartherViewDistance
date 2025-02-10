@@ -1,8 +1,5 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -15,9 +12,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class PacketHandleChunk {
 
-    public PacketHandleChunk() {}
+    public PacketHandleChunk() {
+    }
 
     public void write(final FriendlyByteBuf serializer, final LevelChunk chunk, final boolean needTile) {
         final CompoundTag heightmapsNBT = new CompoundTag();

@@ -15,10 +15,16 @@ public enum ViewMapMode {
         this.create = create;
     }
 
-    public ViewMap createMap(final ViewShape viewShape) { return (ViewMap) this.create.apply(viewShape); }
+    public ViewMap createMap(final ViewShape viewShape) {
+        return (ViewMap) this.create.apply(viewShape);
+    }
 
-    public int getExtend() { return this.extend; }
+    public int getExtend() {
+        return this.extend;
+    }
 
     // $FF: synthetic method
-    private static ViewMapMode[] $values() { return new ViewMapMode[] { X15, X31, X63, X127, X383 }; }
+    private static ViewMapMode[] $values() {
+        return new ViewMapMode[]{X15, X31, X63, X127, X383};
+    }
 }

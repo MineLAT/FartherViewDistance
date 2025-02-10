@@ -1,21 +1,5 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.CraftChunk;
-import org.bukkit.craftbukkit.block.CraftBlock;
-import org.bukkit.craftbukkit.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.util.CraftNamespacedKey;
-import org.bukkit.util.Vector;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -32,9 +16,24 @@ import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.CraftChunk;
+import org.bukkit.craftbukkit.block.CraftBlock;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.util.CraftNamespacedKey;
+import org.bukkit.util.Vector;
 import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
 import xuan.cat.fartherviewdistance.api.server.ServerNBT;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class MinecraftChunk implements ServerChunk {
 
@@ -52,13 +51,19 @@ public final class MinecraftChunk implements ServerChunk {
                 ChunkRegionLoader.saveChunk(this.worldServer, this.levelChunk, (MinecraftChunkLight) light, asyncRunnable));
     }
 
-    LevelChunk getLevelChunk() { return this.levelChunk; }
+    LevelChunk getLevelChunk() {
+        return this.levelChunk;
+    }
 
     @Override
-    public org.bukkit.Chunk getChunk() { return new CraftChunk(this.levelChunk); }
+    public org.bukkit.Chunk getChunk() {
+        return new CraftChunk(this.levelChunk);
+    }
 
     @Override
-    public org.bukkit.World getWorld() { return this.worldServer.getWorld(); }
+    public org.bukkit.World getWorld() {
+        return this.worldServer.getWorld();
+    }
 
     public BlockState getIBlockData(final int x, final int y, final int z) {
         final int indexY = (y >> 4) - this.levelChunk.getMinSection();
@@ -132,17 +137,21 @@ public final class MinecraftChunk implements ServerChunk {
     }
 
     @Override
-    public int getX() { return this.levelChunk.getPos().x; }
+    public int getX() {
+        return this.levelChunk.getPos().x;
+    }
 
     @Override
-    public int getZ() { return this.levelChunk.getPos().z; }
+    public int getZ() {
+        return this.levelChunk.getPos().z;
+    }
 
     private static Field field_LevelChunkSection_nonEmptyBlockCount;
 
     static {
         try {
             MinecraftChunk.field_LevelChunkSection_nonEmptyBlockCount = LevelChunkSection.class.getDeclaredField("nonEmptyBlockCount"); // TODO
-                                                                                                                                          // 映射
+            // 映射
             // nonEmptyBlockCount
             MinecraftChunk.field_LevelChunkSection_nonEmptyBlockCount.setAccessible(true);
         } catch (final NoSuchFieldException exception) {
@@ -192,7 +201,9 @@ public final class MinecraftChunk implements ServerChunk {
     }
 
     @Override
-    public org.bukkit.Material getMaterial(final int x, final int y, final int z) { return this.getBlockData(x, y, z).getMaterial(); }
+    public org.bukkit.Material getMaterial(final int x, final int y, final int z) {
+        return this.getBlockData(x, y, z).getMaterial();
+    }
 
     @Override
     public void setMaterial(final int x, final int y, final int z, final org.bukkit.Material material) {
@@ -201,7 +212,9 @@ public final class MinecraftChunk implements ServerChunk {
 
     @Override
     @Deprecated
-    public org.bukkit.block.Biome getBiome(final int x, final int z) { return this.getBiome(x, 0, z); }
+    public org.bukkit.block.Biome getBiome(final int x, final int z) {
+        return this.getBiome(x, 0, z);
+    }
 
     @Override
     public org.bukkit.block.Biome getBiome(final int x, final int y, final int z) {
@@ -212,18 +225,20 @@ public final class MinecraftChunk implements ServerChunk {
 
     @Override
     @Deprecated
-    public void setBiome(final int x, final int z, final org.bukkit.block.Biome biome) { this.setBiome(x, 0, z, biome); }
+    public void setBiome(final int x, final int z, final org.bukkit.block.Biome biome) {
+        this.setBiome(x, 0, z, biome);
+    }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static final Map<org.bukkit.block.Biome, ResourceKey<net.minecraft.world.level.biome.Biome>> BIOME_KEY_CACHE = Collections
             .synchronizedMap(new EnumMap(org.bukkit.block.Biome.class));
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Holder<net.minecraft.world.level.biome.Biome> biomeToBiomeBase(
             final Registry<net.minecraft.world.level.biome.Biome> registry, final org.bukkit.block.Biome bio) {
         return bio != null && bio != org.bukkit.block.Biome.CUSTOM
                 ? registry.getHolderOrThrow((ResourceKey) MinecraftChunk.BIOME_KEY_CACHE.computeIfAbsent(bio,
-                        b -> ResourceKey.create(Registries.BIOME, CraftNamespacedKey.toMinecraft(b.getKey()))))
+                b -> ResourceKey.create(Registries.BIOME, CraftNamespacedKey.toMinecraft(b.getKey()))))
                 : null;
     }
 
@@ -233,13 +248,19 @@ public final class MinecraftChunk implements ServerChunk {
     }
 
     @Override
-    public boolean hasFluid(final int x, final int y, final int z) { return !this.getIBlockData(x, y, z).getFluidState().isEmpty(); }
+    public boolean hasFluid(final int x, final int y, final int z) {
+        return !this.getIBlockData(x, y, z).getFluidState().isEmpty();
+    }
 
     @Override
-    public boolean isAir(final int x, final int y, final int z) { return this.getIBlockData(x, y, z).isAir(); }
+    public boolean isAir(final int x, final int y, final int z) {
+        return this.getIBlockData(x, y, z).isAir();
+    }
 
     @Override
-    public int getHighestY(final int x, final int z) { return this.levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z); }
+    public int getHighestY(final int x, final int z) {
+        return this.levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+    }
 
     public static ServerChunk.Status ofStatus(final ChunkStatus chunkStatus) {
         if (chunkStatus == ChunkStatus.EMPTY) {
@@ -268,5 +289,7 @@ public final class MinecraftChunk implements ServerChunk {
     }
 
     @Override
-    public Status getStatus() { return MinecraftChunk.ofStatus(this.levelChunk.getPersistedStatus()); }
+    public Status getStatus() {
+        return MinecraftChunk.ofStatus(this.levelChunk.getPersistedStatus());
+    }
 }

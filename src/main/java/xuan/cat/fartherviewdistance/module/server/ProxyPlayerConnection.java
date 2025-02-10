@@ -1,20 +1,19 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.lang.reflect.Field;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
 import net.minecraft.network.protocol.game.ClientboundForgetLevelChunkPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket;
 import net.minecraft.world.level.ChunkPos;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import xuan.cat.fartherviewdistance.api.server.packet.PacketKeepAliveEvent;
 import xuan.cat.fartherviewdistance.api.server.packet.PacketMapChunkEvent;
 import xuan.cat.fartherviewdistance.api.server.packet.PacketUnloadChunkEvent;
 import xuan.cat.fartherviewdistance.api.server.packet.PacketViewDistanceEvent;
+
+import java.lang.reflect.Field;
 
 public final class ProxyPlayerConnection {
 

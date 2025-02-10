@@ -7,15 +7,15 @@ import xuan.cat.fartherviewdistance.api.data.PlayerView;
 public final class PlayerViewMarkSendChunkEvent extends ExtendChunkEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
-    private       boolean       cancel  = false;
-    private final int           chunkX;
-    private final int           chunkZ;
+    private boolean cancel = false;
+    private final int chunkX;
+    private final int chunkZ;
 
 
     public PlayerViewMarkSendChunkEvent(PlayerView view, int chunkX, int chunkZ) {
         super(view);
-        this.chunkX  = chunkX;
-        this.chunkZ  = chunkZ;
+        this.chunkX = chunkX;
+        this.chunkZ = chunkZ;
     }
 
 

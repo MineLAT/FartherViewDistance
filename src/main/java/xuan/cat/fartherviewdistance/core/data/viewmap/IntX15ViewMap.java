@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * 表示區塊視野
+ *
  * @see LongX31ViewMap 的延伸版本
  */
 public final class IntX15ViewMap extends ViewMap {
@@ -42,13 +43,21 @@ public final class IntX15ViewMap extends ViewMap {
 
 
      */
-    /** 距離 */
+    /**
+     * 距離
+     */
     private static final int DISTANCE = 16;
-    /** 中心 */
+    /**
+     * 中心
+     */
     private static final int CENTER = 15;
-    /** 長度 */
+    /**
+     * 長度
+     */
     private static final int LENGTH = 31;
-    /** 視圖計算 */
+    /**
+     * 視圖計算
+     */
     private final int[] chunkMap = new int[LENGTH];
 
 

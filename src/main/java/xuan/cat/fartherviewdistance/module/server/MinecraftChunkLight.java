@@ -1,12 +1,11 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.util.Arrays;
-
+import net.minecraft.server.level.ServerLevel;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
-
-import net.minecraft.server.level.ServerLevel;
 import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
+
+import java.util.Arrays;
 
 public final class MinecraftChunkLight implements ServerChunkLight {
 
@@ -16,7 +15,9 @@ public final class MinecraftChunkLight implements ServerChunkLight {
     private final byte[][] blockLights;
     private final byte[][] skyLights;
 
-    public MinecraftChunkLight(final World world) { this(((CraftWorld) world).getHandle()); }
+    public MinecraftChunkLight(final World world) {
+        this(((CraftWorld) world).getHandle());
+    }
 
     public MinecraftChunkLight(final ServerLevel worldServer) {
         this(worldServer, new byte[worldServer.getSectionsCount() + 2][], new byte[worldServer.getSectionsCount() + 2][]);
@@ -30,9 +31,13 @@ public final class MinecraftChunkLight implements ServerChunkLight {
         Arrays.fill(skyLights, MinecraftChunkLight.EMPTY);
     }
 
-    public ServerLevel getWorldServer() { return this.worldServer; }
+    public ServerLevel getWorldServer() {
+        return this.worldServer;
+    }
 
-    public int getArrayLength() { return this.blockLights.length; }
+    public int getArrayLength() {
+        return this.blockLights.length;
+    }
 
     public static int indexFromSectionY(final ServerLevel worldServer, final int sectionY) {
         return sectionY - worldServer.getMinSection() + 1;
@@ -54,7 +59,11 @@ public final class MinecraftChunkLight implements ServerChunkLight {
         return this.skyLights[MinecraftChunkLight.indexFromSectionY(this.worldServer, sectionY)];
     }
 
-    public byte[][] getBlockLights() { return this.blockLights; }
+    public byte[][] getBlockLights() {
+        return this.blockLights;
+    }
 
-    public byte[][] getSkyLights() { return this.skyLights; }
+    public byte[][] getSkyLights() {
+        return this.skyLights;
+    }
 }

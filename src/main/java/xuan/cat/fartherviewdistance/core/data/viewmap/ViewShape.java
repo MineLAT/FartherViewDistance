@@ -30,7 +30,9 @@ public enum ViewShape {
     private final ViewShape.JudgeInside judgeInside;
     private final ViewShape.JudgeInside judgeInsideEdge;
 
-    private ViewShape(final ViewShape.JudgeInside judgeInside) { this(judgeInside, judgeInside); }
+    private ViewShape(final ViewShape.JudgeInside judgeInside) {
+        this(judgeInside, judgeInside);
+    }
 
     private ViewShape(final ViewShape.JudgeInside judgeInside, final ViewShape.JudgeInside judgeInsideEdge) {
         this.judgeInside = judgeInside;
@@ -46,7 +48,11 @@ public enum ViewShape {
     }
 
     // $FF: synthetic method
-    private static ViewShape[] $values() { return new ViewShape[] { SQUARE, ROUND }; }
+    private static ViewShape[] $values() {
+        return new ViewShape[]{SQUARE, ROUND};
+    }
 
-    interface JudgeInside { boolean test(int var1, int var2, int var3, int var4, int var5); }
+    interface JudgeInside {
+        boolean test(int var1, int var2, int var3, int var4, int var5);
+    }
 }

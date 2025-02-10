@@ -1,10 +1,5 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.util.function.Consumer;
-
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.entity.Player;
-
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
@@ -15,9 +10,13 @@ import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSetChunkCacheRadiusPacket;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
 import xuan.cat.fartherviewdistance.api.server.ServerPacket;
+
+import java.util.function.Consumer;
 
 public final class MinecraftPacket implements ServerPacket {
 
@@ -64,5 +63,7 @@ public final class MinecraftPacket implements ServerPacket {
     }
 
     @Override
-    public void sendKeepAlive(final Player player, final long id) { this.sendPacket(player, new ClientboundKeepAlivePacket(id)); }
+    public void sendKeepAlive(final Player player, final long id) {
+        this.sendPacket(player, new ClientboundKeepAlivePacket(id));
+    }
 }

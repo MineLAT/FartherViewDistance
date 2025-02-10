@@ -1,15 +1,16 @@
 package xuan.cat.fartherviewdistance.module.server;
 
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.VarInt;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.VarInt;
-
 public final class PacketHandleLightUpdate {
 
-    public PacketHandleLightUpdate() {}
+    public PacketHandleLightUpdate() {
+    }
 
     public void write(final FriendlyByteBuf serializer, final MinecraftChunkLight light) {
         final List<byte[]> dataSky = new ArrayList<>();
@@ -39,7 +40,7 @@ public final class PacketHandleLightUpdate {
     }
 
     private static void saveBitSet(final byte[][] nibbleArrays, final int index, final BitSet notEmpty, final BitSet isEmpty,
-            final List<byte[]> list) {
+                                   final List<byte[]> list) {
         final byte[] nibbleArray = nibbleArrays[index];
         if (nibbleArray != MinecraftChunkLight.EMPTY) {
             if (nibbleArray == null) {

@@ -7,13 +7,13 @@ import xuan.cat.fartherviewdistance.api.data.PlayerView;
 public final class PlayerSendViewDistanceEvent extends ExtendChunkEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
 
-    private       boolean       cancel  = false;
-    private       int           distance;
+    private boolean cancel = false;
+    private int distance;
 
 
     public PlayerSendViewDistanceEvent(PlayerView view, int distance) {
         super(view);
-        this.distance   = distance;
+        this.distance = distance;
     }
 
 

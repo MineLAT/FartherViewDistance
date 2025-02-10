@@ -1,12 +1,5 @@
 package xuan.cat.fartherviewdistance.core.data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,7 +8,15 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import xuan.cat.fartherviewdistance.core.data.viewmap.ViewMapMode;
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class ConfigData {
 
     private final JavaPlugin plugin;
@@ -46,7 +47,9 @@ public final class ConfigData {
         this.load();
     }
 
-    public int getServerSendTickMaxBytes() { return this.serverSendSecondMaxBytes / 20; }
+    public int getServerSendTickMaxBytes() {
+        return this.serverSendSecondMaxBytes / 20;
+    }
 
     public ConfigData.World getWorld(final String worldName) {
         return (ConfigData.World) this.worlds.getOrDefault(worldName, this.worldDefault);
@@ -147,7 +150,7 @@ public final class ConfigData {
     }
 
     private Map<BlockData, BlockData[]> parsePreventXray(final ConfigurationSection preventXrayConfiguration, final String worldName,
-            final Map<BlockData, BlockData[]> defaultValue) {
+                                                         final Map<BlockData, BlockData[]> defaultValue) {
         if (preventXrayConfiguration == null) {
             return defaultValue;
         } else {
@@ -204,9 +207,9 @@ public final class ConfigData {
         private final int playerSendSecondMaxBytes;
 
         public World(final ViewMapMode viewDistanceMode, final String worldName, final boolean enable, final int maxViewDistance,
-                final int worldTickMaxGenerateAmount, final boolean sendTitleData, final int worldSendSecondMaxBytes,
-                final int playerSendSecondMaxBytes, final boolean readServerLoadedChunk, final int delayBeforeSend,
-                final Map<BlockData, BlockData[]> preventXray, final double speedingNotSend) {
+                     final int worldTickMaxGenerateAmount, final boolean sendTitleData, final int worldSendSecondMaxBytes,
+                     final int playerSendSecondMaxBytes, final boolean readServerLoadedChunk, final int delayBeforeSend,
+                     final Map<BlockData, BlockData[]> preventXray, final double speedingNotSend) {
             this.worldName = worldName;
             this.enable = enable;
             this.maxViewDistance = maxViewDistance;
@@ -225,8 +228,12 @@ public final class ConfigData {
             this.speedingNotSend = speedingNotSend;
         }
 
-        public int getPlayerSendTickMaxBytes() { return this.playerSendSecondMaxBytes / 20; }
+        public int getPlayerSendTickMaxBytes() {
+            return this.playerSendSecondMaxBytes / 20;
+        }
 
-        public int getWorldSendTickMaxBytes() { return this.worldSendSecondMaxBytes / 20; }
+        public int getWorldSendTickMaxBytes() {
+            return this.worldSendSecondMaxBytes / 20;
+        }
     }
 }

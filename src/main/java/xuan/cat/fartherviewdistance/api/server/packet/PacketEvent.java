@@ -17,6 +17,7 @@ public abstract class PacketEvent extends Event implements Cancellable {
     public final boolean isCancelled() {
         return cancel;
     }
+
     public final void setCancelled(boolean cancel) {
         this.cancel = cancel;
     }

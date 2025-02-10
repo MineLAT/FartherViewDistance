@@ -23,11 +23,17 @@ public final class CumulativeReport {
         }
     }
 
-    public void increaseLoadFast() { final int var10002 = this.loadFast[0]++; }
+    public void increaseLoadFast() {
+        final int var10002 = this.loadFast[0]++;
+    }
 
-    public void increaseLoadSlow() { final int var10002 = this.loadSlow[0]++; }
+    public void increaseLoadSlow() {
+        final int var10002 = this.loadSlow[0]++;
+    }
 
-    public void addConsume(final int value) { this.consume[0] += value; }
+    public void addConsume(final int value) {
+        this.consume[0] += value;
+    }
 
     public int reportLoadFast5s() {
         int total = 0;

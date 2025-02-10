@@ -1,10 +1,10 @@
 package xuan.cat.fartherviewdistance.core.data.viewmap;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("unused")
 public abstract class ViewMap {
@@ -16,13 +16,21 @@ public abstract class ViewMap {
     protected int centerX = 0;
     protected int centerZ = 0;
 
-    protected ViewMap(final ViewShape viewShape) { this.viewShape = viewShape; }
+    protected ViewMap(final ViewShape viewShape) {
+        this.viewShape = viewShape;
+    }
 
-    public static int getX(final long positionKey) { return (int) positionKey; }
+    public static int getX(final long positionKey) {
+        return (int) positionKey;
+    }
 
-    public static int getZ(final long positionKey) { return (int) (positionKey >> 32); }
+    public static int getZ(final long positionKey) {
+        return (int) (positionKey >> 32);
+    }
 
-    public static long getPositionKey(final int x, final int z) { return (long) z << 32 & -4294967296L | (long) x & 4294967295L; }
+    public static long getPositionKey(final int x, final int z) {
+        return (long) z << 32 & -4294967296L | (long) x & 4294967295L;
+    }
 
     public abstract List<Long> movePosition(Location var1);
 
@@ -30,15 +38,25 @@ public abstract class ViewMap {
 
     public abstract Long get();
 
-    public int getCenterX() { return this.centerX; }
+    public int getCenterX() {
+        return this.centerX;
+    }
 
-    public void setCenterX(final int centerX) { this.centerX = centerX; }
+    public void setCenterX(final int centerX) {
+        this.centerX = centerX;
+    }
 
-    public int getCenterZ() { return this.centerZ; }
+    public int getCenterZ() {
+        return this.centerZ;
+    }
 
-    public void setCenterZ(final int centerZ) { this.centerZ = centerZ; }
+    public void setCenterZ(final int centerZ) {
+        this.centerZ = centerZ;
+    }
 
-    public final void setCenter(final Location location) { this.setCenter(location.getBlockX() >> 4, location.getBlockZ() >> 4); }
+    public final void setCenter(final Location location) {
+        this.setCenter(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+    }
 
     public final void setCenter(final int positionX, final int positionZ) {
         this.setCenterX(positionX);

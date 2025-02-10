@@ -1,5 +1,30 @@
 package xuan.cat.fartherviewdistance.core;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
+import xuan.cat.fartherviewdistance.api.event.PlayerSendExtendChunkEvent;
+import xuan.cat.fartherviewdistance.api.server.ServerChunk;
+import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
+import xuan.cat.fartherviewdistance.api.server.ServerNBT;
+import xuan.cat.fartherviewdistance.api.server.ServerPacket;
+import xuan.cat.fartherviewdistance.api.server.ServerWorld;
+import xuan.cat.fartherviewdistance.api.server.packet.PacketEvent;
+import xuan.cat.fartherviewdistance.api.server.packet.PacketMapChunkEvent;
+import xuan.cat.fartherviewdistance.core.data.ConfigData;
+import xuan.cat.fartherviewdistance.core.data.CumulativeReport;
+import xuan.cat.fartherviewdistance.core.data.LangFiles;
+import xuan.cat.fartherviewdistance.core.data.NetworkTraffic;
+import xuan.cat.fartherviewdistance.core.data.PlayerChunkView;
+import xuan.cat.fartherviewdistance.core.data.viewmap.ViewMap;
+import xuan.cat.fartherviewdistance.core.data.viewmap.ViewShape;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,32 +42,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
-
-import xuan.cat.fartherviewdistance.api.server.ServerChunk;
-import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
-import xuan.cat.fartherviewdistance.api.server.ServerWorld;
-import xuan.cat.fartherviewdistance.api.server.ServerNBT;
-import xuan.cat.fartherviewdistance.api.server.ServerPacket;
-import xuan.cat.fartherviewdistance.api.server.packet.PacketEvent;
-import xuan.cat.fartherviewdistance.api.server.packet.PacketMapChunkEvent;
-import xuan.cat.fartherviewdistance.api.event.PlayerSendExtendChunkEvent;
-import xuan.cat.fartherviewdistance.core.data.ConfigData;
-import xuan.cat.fartherviewdistance.core.data.CumulativeReport;
-import xuan.cat.fartherviewdistance.core.data.LangFiles;
-import xuan.cat.fartherviewdistance.core.data.NetworkTraffic;
-import xuan.cat.fartherviewdistance.core.data.PlayerChunkView;
-import xuan.cat.fartherviewdistance.core.data.viewmap.ViewMap;
-import xuan.cat.fartherviewdistance.core.data.viewmap.ViewShape;
 
 /**
  * 區塊伺服器
@@ -75,7 +74,7 @@ public final class ChunkServer {
     private List<World> lastWorldList = new ArrayList<>();
 
     public ChunkServer(final ConfigData configData, final Plugin plugin, final ViewShape viewShape, final ServerWorld serverWorld,
-            final ServerPacket serverPacket) {
+                       final ServerPacket serverPacket) {
         this.configData = configData;
         this.plugin = plugin;
         this.serverWorld = serverWorld;
@@ -93,8 +92,8 @@ public final class ChunkServer {
      * a map of player views.
      *
      * @param player The player object represents a player in the game. It likely
-     *                   contains information such as the player's name, level,
-     *                   inventory, and other relevant data.
+     *               contains information such as the player's name, level,
+     *               inventory, and other relevant data.
      * @return The method is returning an instance of the PlayerChunkView class.
      */
     public PlayerChunkView initView(final Player player) {
@@ -108,7 +107,9 @@ public final class ChunkServer {
      *
      * @param player The "player" parameter is an object of the Player class.
      */
-    public void clearView(final Player player) { this.playersViewMap.remove(player); }
+    public void clearView(final Player player) {
+        this.playersViewMap.remove(player);
+    }
 
     /**
      * The getView function returns the PlayerChunkView associated with a given
@@ -117,7 +118,9 @@ public final class ChunkServer {
      * @param player The player object for which we want to retrieve the view.
      * @return The method is returning an object of type PlayerChunkView.
      */
-    public PlayerChunkView getView(final Player player) { return (PlayerChunkView) this.playersViewMap.get(player); }
+    public PlayerChunkView getView(final Player player) {
+        return (PlayerChunkView) this.playersViewMap.get(player);
+    }
 
     /**
      * The `reloadMultithreaded` function initializes and schedules multiple threads
@@ -234,10 +237,10 @@ public final class ChunkServer {
      * for overspeed, with a sleep time of 50 milliseconds between iterations.
      *
      * @param canRun The "canRun" parameter is an AtomicBoolean object that is used
-     *                   to control the execution of the while loop in the "runView"
-     *                   method. If the value of "canRun" is true, the loop will
-     *                   continue running. If the value of "canRun" is false, the
-     *                   loop
+     *               to control the execution of the while loop in the "runView"
+     *               method. If the value of "canRun" is true, the loop will
+     *               continue running. If the value of "canRun" is false, the
+     *               loop
      */
     private void runView(final AtomicBoolean canRun) {
         while (canRun.get()) {
@@ -272,20 +275,20 @@ public final class ChunkServer {
      * conditions and configurations.
      *
      * @param canRun                 A boolean flag that indicates whether the
-     *                                   thread should continue running or not. If
-     *                                   the value is true, the thread will continue
-     *                                   running. If the value is false, the thread
-     *                                   will stop running and exit the loop.
+     *                               thread should continue running or not. If
+     *                               the value is true, the thread will continue
+     *                               running. If the value is false, the thread
+     *                               will stop running and exit the loop.
      * @param threadCumulativeReport The `threadCumulativeReport` parameter is an
-     *                                   instance of the `CumulativeReport` class.
-     *                                   It is used to keep track of the cumulative
-     *                                   report for the current thread. The
-     *                                   `CumulativeReport` class likely contains
-     *                                   methods to increment various counters or
-     *                                   statistics related to the thread's
-     *                                   execution.
+     *                               instance of the `CumulativeReport` class.
+     *                               It is used to keep track of the cumulative
+     *                               report for the current thread. The
+     *                               `CumulativeReport` class likely contains
+     *                               methods to increment various counters or
+     *                               statistics related to the thread's
+     *                               execution.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void runThread(final AtomicBoolean canRun, final CumulativeReport threadCumulativeReport) {
         while (canRun.get()) {
             final long startTime = System.currentTimeMillis();
@@ -307,7 +310,8 @@ public final class ChunkServer {
                         ((List) worldsViews.computeIfAbsent(view.getLastWorld(), key -> new ArrayList<>())).add(view);
                     }
 
-                    handleServer: {
+                    handleServer:
+                    {
                         for (final World world : worldList) {
                             // 世界配置
                             final ConfigData.World configWorld = this.configData.getWorld(world.getName());
@@ -330,7 +334,8 @@ public final class ChunkServer {
                             final AtomicInteger worldGeneratedChunk = this.worldsGeneratedChunk.getOrDefault(world,
                                     new AtomicInteger(Integer.MAX_VALUE));
 
-                            handleWorld: {
+                            handleWorld:
+                            {
                                 // 所有玩家都網路流量都已滿載
                                 boolean playersFull = false;
                                 while (!playersFull && effectiveTime >= System.currentTimeMillis()) {
@@ -367,7 +372,8 @@ public final class ChunkServer {
                                         final int chunkX = ViewMap.getX(chunkKey);
                                         final int chunkZ = ViewMap.getZ(chunkKey);
 
-                                        handlePlayer: {
+                                        handlePlayer:
+                                        {
                                             if (!this.configData.disableFastProcess) {
                                                 // 讀取最新
                                                 try {
@@ -391,7 +397,7 @@ public final class ChunkServer {
                                                         }
                                                     }
                                                 } catch (NullPointerException | NoClassDefFoundError | NoSuchMethodError
-                                                        | NoSuchFieldError exception) {
+                                                         | NoSuchFieldError exception) {
                                                     exception.printStackTrace();
                                                 } catch (final Exception ignored) {
                                                 }
@@ -413,7 +419,7 @@ public final class ChunkServer {
                                                         break handlePlayer;
                                                     }
                                                 } catch (NullPointerException | NoClassDefFoundError | NoSuchMethodError
-                                                        | NoSuchFieldError exception) {
+                                                         | NoSuchFieldError exception) {
                                                     exception.printStackTrace();
                                                 } catch (final Exception ignored) {
                                                 }
@@ -446,8 +452,9 @@ public final class ChunkServer {
                                                                 chunkNBT, chunkLight, syncKey, worldCumulativeReport,
                                                                 threadCumulativeReport);
                                                         break handlePlayer;
-                                                    } catch (NullPointerException | NoClassDefFoundError | NoSuchMethodError
-                                                            | NoSuchFieldError exception) {
+                                                    } catch (NullPointerException | NoClassDefFoundError |
+                                                             NoSuchMethodError
+                                                             | NoSuchFieldError exception) {
                                                         exception.printStackTrace();
                                                     } catch (final Exception ignored) {
                                                     }
@@ -479,8 +486,9 @@ public final class ChunkServer {
                                                                 chunkNBT, chunkLight, syncKey, worldCumulativeReport,
                                                                 threadCumulativeReport);
                                                         break handlePlayer;
-                                                    } catch (NullPointerException | NoClassDefFoundError | NoSuchMethodError
-                                                            | NoSuchFieldError exception) {
+                                                    } catch (NullPointerException | NoClassDefFoundError |
+                                                             NoSuchMethodError
+                                                             | NoSuchFieldError exception) {
                                                         exception.printStackTrace();
                                                     } catch (final Exception ignored) {
                                                     }
@@ -523,48 +531,48 @@ public final class ChunkServer {
      * into account various configurations and network traffic.
      *
      * @param world                  The `world` parameter is an instance of the
-     *                                   `World` class, which represents the
-     *                                   Minecraft world in which the chunk is
-     *                                   located.
+     *                               `World` class, which represents the
+     *                               Minecraft world in which the chunk is
+     *                               located.
      * @param configWorld            The `configWorld` parameter is an object of
-     *                                   type `ConfigData.World` which contains
-     *                                   configuration data specific to the world in
-     *                                   which the chunk is being sent.
+     *                               type `ConfigData.World` which contains
+     *                               configuration data specific to the world in
+     *                               which the chunk is being sent.
      * @param worldNetworkTraffic    The `worldNetworkTraffic` parameter is an
-     *                                   object that represents the network traffic
-     *                                   for the entire world. It is used to track
-     *                                   the amount of network traffic used by the
-     *                                   chunk being sent.
+     *                               object that represents the network traffic
+     *                               for the entire world. It is used to track
+     *                               the amount of network traffic used by the
+     *                               chunk being sent.
      * @param view                   The "view" parameter represents the player's
-     *                                   chunk view, which contains information
-     *                                   about the chunks that the player can see.
+     *                               chunk view, which contains information
+     *                               about the chunks that the player can see.
      * @param chunkX                 The `chunkX` parameter represents the X
-     *                                   coordinate of the chunk that needs to be
-     *                                   sent.
+     *                               coordinate of the chunk that needs to be
+     *                               sent.
      * @param chunkZ                 The parameter `chunkZ` represents the
-     *                                   Z-coordinate of the chunk that needs to be
-     *                                   sent.
+     *                               Z-coordinate of the chunk that needs to be
+     *                               sent.
      * @param chunkNBT               The chunkNBT parameter is an object that
-     *                                   represents the NBT (Named Binary Tag) data
-     *                                   of the chunk. NBT is a data format used by
-     *                                   Minecraft to store structured data. In this
-     *                                   case, the chunkNBT object contains the NBT
-     *                                   data for the chunk being sent.
+     *                               represents the NBT (Named Binary Tag) data
+     *                               of the chunk. NBT is a data format used by
+     *                               Minecraft to store structured data. In this
+     *                               case, the chunkNBT object contains the NBT
+     *                               data for the chunk being sent.
      * @param chunkLight             The parameter `chunkLight` is of type
-     *                                   `BranchChunkLight` and represents the light
-     *                                   data for the chunk being sent.
+     *                               `BranchChunkLight` and represents the light
+     *                               data for the chunk being sent.
      * @param syncKey                A unique identifier used to synchronize the
-     *                                   sending of chunks between the server and
-     *                                   the player.
+     *                               sending of chunks between the server and
+     *                               the player.
      * @param worldCumulativeReport  The `worldCumulativeReport` parameter is an
-     *                                   object of type `CumulativeReport` that
-     *                                   represents the cumulative report for the
-     *                                   world. It is used to track the cumulative
-     *                                   network traffic consumption for the world.
+     *                               object of type `CumulativeReport` that
+     *                               represents the cumulative report for the
+     *                               world. It is used to track the cumulative
+     *                               network traffic consumption for the world.
      * @param threadCumulativeReport The parameter `threadCumulativeReport` is of
-     *                                   type `CumulativeReport`. It is used to
-     *                                   track the cumulative network traffic
-     *                                   consumption for a specific thread.
+     *                               type `CumulativeReport`. It is used to
+     *                               track the cumulative network traffic
+     *                               consumption for a specific thread.
      */
     private void sendChunk(final World world, final ConfigData.World configWorld, final NetworkTraffic worldNetworkTraffic,
                            final PlayerChunkView view, final int chunkX, final int chunkZ, final ServerNBT chunkNBT, final ServerChunkLight chunkLight,
@@ -603,7 +611,7 @@ public final class ChunkServer {
 
             final boolean needMeasure = this.configData.autoAdaptPlayerNetworkSpeed
                     && (view.networkSpeed.speedID == null && view.networkSpeed.speedTimestamp + 1000 <= System.currentTimeMillis()
-                            || view.networkSpeed.speedTimestamp + 30000 <= System.currentTimeMillis());
+                    || view.networkSpeed.speedTimestamp + 30000 <= System.currentTimeMillis());
             // ping
             if (needMeasure) {
                 if (view.networkSpeed.speedID != null) {
@@ -640,10 +648,10 @@ public final class ChunkServer {
      * of a map to the player if it exists in their view.
      *
      * @param player The "player" parameter is of type Player and represents the
-     *                   player who triggered the packet event.
+     *               player who triggered the packet event.
      * @param event  The "event" parameter in the "packetEvent" method is of type
-     *                   PacketEvent. It represents the event that is triggered when
-     *                   a packet is received or sent by the player.
+     *               PacketEvent. It represents the event that is triggered when
+     *               a packet is received or sent by the player.
      */
     public void packetEvent(final Player player, final PacketEvent event) {
         final PlayerChunkView view = this.getView(player);
@@ -657,7 +665,7 @@ public final class ChunkServer {
      * to the waitMoveSyncQueue to send the view distance to the player.
      *
      * @param player The "player" parameter is an object of the Player class,
-     *                   representing a player in the game.
+     *               representing a player in the game.
      */
     public void respawnView(final Player player) {
         final PlayerChunkView view = this.getView(player);
@@ -672,11 +680,11 @@ public final class ChunkServer {
      * current location.
      *
      * @param player The "player" parameter represents the player for whom the view
-     *                   is being unloaded.
+     *               is being unloaded.
      * @param from   The "from" parameter represents the previous location of the
-     *                   player.
+     *               player.
      * @param move   The "move" parameter represents the new location that the
-     *                   player is moving to.
+     *               player is moving to.
      */
     public void unloadView(final Player player, final Location from, final Location move) {
         final PlayerChunkView view = this.getView(player);

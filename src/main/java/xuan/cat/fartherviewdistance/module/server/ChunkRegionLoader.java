@@ -1,22 +1,9 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import javax.annotation.Nullable;
-
+import ca.spottedleaf.moonrise.patches.starlight.util.SaveUtil;
 import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-
-import ca.spottedleaf.moonrise.patches.starlight.util.SaveUtil;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.shorts.ShortList;
@@ -78,10 +65,21 @@ import net.minecraft.world.ticks.ProtoChunkTicks;
 import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * @see ChunkSerializer 參考 XuanCatAPI.CodeExtendChunkLight
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public final class ChunkRegionLoader {
 
     private static final int CURRENT_DATA_VERSION = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
@@ -107,6 +105,7 @@ public final class ChunkRegionLoader {
             ex.printStackTrace();
         }
     }
+
     private static Field DimensionDataStorage_Provider;
 
     static {
@@ -173,7 +172,7 @@ public final class ChunkRegionLoader {
                     final Codec<PalettedContainer<BlockState>> blockStateCodec = presetBlockStates == null
                             ? ChunkSerializer.BLOCK_STATE_CODEC
                             : PalettedContainer.codecRW(Block.BLOCK_STATE_REGISTRY, BlockState.CODEC, Strategy.SECTION_STATES,
-                                    Blocks.AIR.defaultBlockState(), presetBlockStates);
+                            Blocks.AIR.defaultBlockState(), presetBlockStates);
                     paletteBlock = (PalettedContainer) blockStateCodec.parse(NbtOps.INSTANCE, sectionNBT.getCompound("block_states"))
                             .promotePartial(sx -> {
                             }).getOrThrow(NothingException::new);
@@ -316,7 +315,7 @@ public final class ChunkRegionLoader {
     }
 
     private static Map<Structure, StructureStart> unpackStructureStart(final StructurePieceSerializationContext context,
-            final CompoundTag nbt, final long worldSeed) {
+                                                                       final CompoundTag nbt, final long worldSeed) {
         final Map<Structure, StructureStart> map = Maps.newHashMap();
         final Registry<Structure> iregistry = context.registryAccess().registryOrThrow(Registries.STRUCTURE);
         final CompoundTag nbttagcompound1 = nbt.getCompound("starts");
@@ -343,7 +342,7 @@ public final class ChunkRegionLoader {
     }
 
     private static Map<Structure, LongSet> unpackStructureReferences(final RegistryAccess registryManager, final ChunkPos pos,
-            final CompoundTag nbt) {
+                                                                     final CompoundTag nbt) {
         final Map<Structure, LongSet> map = Maps.newHashMap();
         final Registry<Structure> iregistry = registryManager.registryOrThrow(Registries.STRUCTURE);
         final CompoundTag nbttagcompound1 = nbt.getCompound("References");
@@ -444,7 +443,7 @@ public final class ChunkRegionLoader {
     }
 
     public static CompoundTag saveChunk(final ServerLevel world, final ChunkAccess chunk, final MinecraftChunkLight light,
-            final List<Runnable> asyncRunnable) {
+                                        final List<Runnable> asyncRunnable) {
         final ChunkPos chunkPos = chunk.getPos();
         final CompoundTag nbt = NbtUtils.addCurrentDataVersion(new CompoundTag());
 
@@ -586,7 +585,7 @@ public final class ChunkRegionLoader {
     }
 
     private static CompoundTag packStructureData(final StructurePieceSerializationContext context, final ChunkPos pos,
-            final Map<Structure, StructureStart> starts, final Map<Structure, LongSet> references) {
+                                                 final Map<Structure, StructureStart> starts, final Map<Structure, LongSet> references) {
         final CompoundTag nbttagcompound = new CompoundTag();
         final CompoundTag nbttagcompound1 = new CompoundTag();
         final Registry<Structure> iregistry = context.registryAccess().registryOrThrow(Registries.STRUCTURE);

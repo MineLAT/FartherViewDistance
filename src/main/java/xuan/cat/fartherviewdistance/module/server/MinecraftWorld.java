@@ -1,16 +1,5 @@
 package xuan.cat.fartherviewdistance.module.server;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.bukkit.World;
-import org.bukkit.craftbukkit.CraftChunk;
-import org.bukkit.craftbukkit.CraftWorld;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.entity.Player;
-
 import ca.spottedleaf.moonrise.patches.starlight.util.SaveUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -29,10 +18,20 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.CraftChunk;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import xuan.cat.fartherviewdistance.api.server.ServerChunk;
 import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
-import xuan.cat.fartherviewdistance.api.server.ServerWorld;
 import xuan.cat.fartherviewdistance.api.server.ServerNBT;
+import xuan.cat.fartherviewdistance.api.server.ServerWorld;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("resource")
 public final class MinecraftWorld implements ServerWorld {
@@ -101,7 +100,9 @@ public final class MinecraftWorld implements ServerWorld {
      * 參考 XuanCatAPI.CodeExtendWorld
      */
     @Override
-    public ServerChunkLight fromLight(final World world) { return new MinecraftChunkLight(((CraftWorld) world).getHandle()); }
+    public ServerChunkLight fromLight(final World world) {
+        return new MinecraftChunkLight(((CraftWorld) world).getHandle());
+    }
 
     /**
      * 參考 XuanCatAPI.CodeExtendWorld

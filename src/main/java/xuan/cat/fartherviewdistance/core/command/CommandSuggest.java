@@ -1,13 +1,14 @@
 package xuan.cat.fartherviewdistance.core.command;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import xuan.cat.fartherviewdistance.core.ChunkServer;
 import xuan.cat.fartherviewdistance.core.data.ConfigData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public final class CommandSuggest implements TabCompleter {
@@ -20,7 +21,7 @@ public final class CommandSuggest implements TabCompleter {
         this.configData = configData;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String s, final String[] parameters) {
         if (!sender.hasPermission("command.viewdistance")) {
@@ -37,39 +38,39 @@ public final class CommandSuggest implements TabCompleter {
             } else if (parameters.length == 2) {
                 final String var6 = parameters[0];
                 switch (var6) {
-                case "report":
-                    list.add("server");
-                    list.add("thread");
-                    list.add("world");
-                    list.add("player");
-                    break;
-                case "permissionCheck":
-                    Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
-                    break;
-                case "debug":
-                    list.add("view");
+                    case "report":
+                        list.add("server");
+                        list.add("thread");
+                        list.add("world");
+                        list.add("player");
+                        break;
+                    case "permissionCheck":
+                        Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
+                        break;
+                    case "debug":
+                        list.add("view");
                 }
             } else if (parameters.length == 3) {
                 final String var10 = parameters[0];
                 switch (var10) {
-                case "report":
-                case "permissionCheck":
-                default:
-                    break;
-                case "debug":
-                    final String var8 = parameters[1];
-                    byte var9 = -1;
-                    switch (var8.hashCode()) {
-                    case 3619493:
-                        if (var8.equals("view")) {
-                            var9 = 0;
-                        }
+                    case "report":
+                    case "permissionCheck":
                     default:
-                        switch (var9) {
-                        case 0:
-                            Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
+                        break;
+                    case "debug":
+                        final String var8 = parameters[1];
+                        byte var9 = -1;
+                        switch (var8.hashCode()) {
+                            case 3619493:
+                                if (var8.equals("view")) {
+                                    var9 = 0;
+                                }
+                            default:
+                                switch (var9) {
+                                    case 0:
+                                        Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
+                                }
                         }
-                    }
                 }
             }
 

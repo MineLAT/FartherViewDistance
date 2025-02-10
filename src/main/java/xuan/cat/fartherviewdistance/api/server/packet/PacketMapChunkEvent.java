@@ -5,9 +5,11 @@ import org.bukkit.event.HandlerList;
 
 public final class PacketMapChunkEvent extends PacketEvent {
     private static final HandlerList handlers = new HandlerList();
+
     public HandlerList getHandlers() {
         return handlers;
     }
+
     public static HandlerList getHandlerList() {
         return handlers;
     }
@@ -24,6 +26,7 @@ public final class PacketMapChunkEvent extends PacketEvent {
     public int getChunkX() {
         return chunkX;
     }
+
     public int getChunkZ() {
         return chunkZ;
     }

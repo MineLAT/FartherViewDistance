@@ -6,18 +6,17 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import xuan.cat.fartherviewdistance.api.server.ServerWorld;
 import xuan.cat.fartherviewdistance.api.server.ServerPacket;
-import xuan.cat.fartherviewdistance.module.listener.ChunkListener;
-import xuan.cat.fartherviewdistance.module.hook.ChunkPlaceholder;
+import xuan.cat.fartherviewdistance.api.server.ServerWorld;
 import xuan.cat.fartherviewdistance.core.ChunkServer;
-import xuan.cat.fartherviewdistance.module.server.MinecraftWorld;
-import xuan.cat.fartherviewdistance.module.server.MinecraftPacket;
 import xuan.cat.fartherviewdistance.core.command.Command;
 import xuan.cat.fartherviewdistance.core.command.CommandSuggest;
 import xuan.cat.fartherviewdistance.core.data.ConfigData;
 import xuan.cat.fartherviewdistance.core.data.viewmap.ViewShape;
+import xuan.cat.fartherviewdistance.module.hook.ChunkPlaceholder;
+import xuan.cat.fartherviewdistance.module.listener.ChunkListener;
+import xuan.cat.fartherviewdistance.module.server.MinecraftPacket;
+import xuan.cat.fartherviewdistance.module.server.MinecraftWorld;
 
 public final class FVD extends JavaPlugin {
 
@@ -77,9 +76,15 @@ public final class FVD extends JavaPlugin {
             FVD.chunkServer.close();
     }
 
-    public static ChunkServer getChunkServer() { return FVD.chunkServer; }
+    public static ChunkServer getChunkServer() {
+        return FVD.chunkServer;
+    }
 
-    public static ConfigData getConfigData() { return FVD.configData; }
+    public static ConfigData getConfigData() {
+        return FVD.configData;
+    }
 
-    public static Plugin getPlugin() {return FVD.plugin; }
+    public static Plugin getPlugin() {
+        return FVD.plugin;
+    }
 }

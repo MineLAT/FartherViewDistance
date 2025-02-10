@@ -1,12 +1,10 @@
 package xuan.cat.fartherviewdistance.core.data;
 
-import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
-import xuan.cat.fartherviewdistance.api.server.ServerPacket;
 import xuan.cat.fartherviewdistance.api.data.PlayerView;
 import xuan.cat.fartherviewdistance.api.event.PlayerCheckViewDistanceEvent;
 import xuan.cat.fartherviewdistance.api.event.PlayerInitViewEvent;
@@ -14,9 +12,12 @@ import xuan.cat.fartherviewdistance.api.event.PlayerSendUnloadChunkEvent;
 import xuan.cat.fartherviewdistance.api.event.PlayerSendViewDistanceEvent;
 import xuan.cat.fartherviewdistance.api.event.PlayerViewMarkSendChunkEvent;
 import xuan.cat.fartherviewdistance.api.event.PlayerViewMarkWaitChunkEvent;
+import xuan.cat.fartherviewdistance.api.server.ServerPacket;
 import xuan.cat.fartherviewdistance.core.ChunkServer;
 import xuan.cat.fartherviewdistance.core.data.viewmap.ViewMap;
 import xuan.cat.fartherviewdistance.core.data.viewmap.ViewShape;
+
+import java.util.Map.Entry;
 
 @SuppressWarnings("unused")
 public final class PlayerChunkView {
@@ -61,17 +62,19 @@ public final class PlayerChunkView {
         return this.configData.serverViewDistance <= -1 ? Bukkit.getViewDistance() + 1 : this.configData.serverViewDistance;
     }
 
-    public void updateDistance() { this.updateDistance(false); }
+    public void updateDistance() {
+        this.updateDistance(false);
+    }
 
     /**
      * The function updates the distance for a map view and sends a packet to the
      * player if the distance has changed.
      *
      * @param forcibly The `forcibly` parameter is a boolean flag that indicates
-     *                     whether the distance update should be forced, regardless
-     *                     of whether the distance has changed or not. If `forcibly`
-     *                     is set to `true`, the distance update will always be
-     *                     performed. If `forcibly` is set to `false`,
+     *                 whether the distance update should be forced, regardless
+     *                 of whether the distance has changed or not. If `forcibly`
+     *                 is set to `true`, the distance update will always be
+     *                 performed. If `forcibly` is set to `false`,
      */
     private void updateDistance(final boolean forcibly) {
         int newDistance = this.max();
@@ -99,16 +102,20 @@ public final class PlayerChunkView {
         }
     }
 
-    private double square(final double num) { return num * num; }
+    private double square(final double num) {
+        return num * num;
+    }
 
-    public boolean overSpeed() { return this.overSpeed(this.player.getLocation()); }
+    public boolean overSpeed() {
+        return this.overSpeed(this.player.getLocation());
+    }
 
     /**
      * The function checks if the speed between the current location and the
      * previous location is greater than a specified threshold.
      *
      * @param location The "location" parameter represents the current location of
-     *                     an object or entity in a specific world.
+     *                 an object or entity in a specific world.
      * @return The method is returning a boolean value.
      */
     public boolean overSpeed(final Location location) {
@@ -127,9 +134,13 @@ public final class PlayerChunkView {
         }
     }
 
-    public synchronized boolean move() { return this.move(this.player.getLocation()); }
+    public synchronized boolean move() {
+        return this.move(this.player.getLocation());
+    }
 
-    public synchronized boolean move(final Location location) { return this.move(location.getBlockX() >> 4, location.getBlockZ() >> 4); }
+    public synchronized boolean move(final Location location) {
+        return this.move(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+    }
 
     /**
      * The function moves the player to a new chunk in the game world and unloads
@@ -137,7 +148,7 @@ public final class PlayerChunkView {
      *
      * @param chunkX The X coordinate of the chunk to move to.
      * @param chunkZ The parameter `chunkZ` represents the Z-coordinate of the
-     *                   chunk.
+     *               chunk.
      * @return The method is returning a boolean value.
      */
     public synchronized boolean move(final int chunkX, final int chunkZ) {
@@ -165,7 +176,9 @@ public final class PlayerChunkView {
         this.delay(System.currentTimeMillis() + (long) this.configData.getWorld(this.lastWorld.getName()).delayBeforeSend);
     }
 
-    public void delay(final long delayTime) { this.delayTime = delayTime; }
+    public void delay(final long delayTime) {
+        this.delayTime = delayTime;
+    }
 
     /**
      * The function returns the next chunk key if it is within the world border and
@@ -245,7 +258,7 @@ public final class PlayerChunkView {
      * based on various conditions and configurations.
      *
      * @return The method is returning an integer value, which represents the
-     *         maximum view distance.
+     * maximum view distance.
      */
     public int max() {
         final ConfigData.World configWorld = this.configData.getWorld(this.lastWorld.getName());
@@ -290,15 +303,27 @@ public final class PlayerChunkView {
         return viewDistance;
     }
 
-    public void clear() { this.mapView.clear(); }
+    public void clear() {
+        this.mapView.clear();
+    }
 
-    public void recalculate() { this.mapView.markOutsideWait(this.mapView.serverDistance); }
+    public void recalculate() {
+        this.mapView.markOutsideWait(this.mapView.serverDistance);
+    }
 
-    public ViewMap getMap() { return this.mapView; }
+    public ViewMap getMap() {
+        return this.mapView;
+    }
 
-    public World getLastWorld() { return this.lastWorld; }
+    public World getLastWorld() {
+        return this.lastWorld;
+    }
 
-    public Player getPlayer() { return this.player; }
+    public Player getPlayer() {
+        return this.player;
+    }
 
-    public long getDelayTime() { return this.delayTime; }
+    public long getDelayTime() {
+        return this.delayTime;
+    }
 }
