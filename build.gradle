@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'io.papermc.paperweight.userdev' version '2.0.0-beta.14'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+repositories {
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url 'https://repo.codemc.io/repository/nms/' }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    mavenCentral()
+}
+
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(sourceSets.main.resources.srcDirs) {
+        include 'plugin.yml'
+        expand(rootProject.properties)
+    }
+}
+
+dependencies {
+    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
+
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    compileOnly 'org.jetbrains:annotations:26.0.2'
+
+    compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+assemble {
+    dependsOn (reobfJar)
+}
+
+jar {
+    enabled = false
+    dependsOn (shadowJar)
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    minimize()
+}

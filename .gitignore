@@ -1,9 +1,4 @@
-# Project exclude paths
-/target/
-# 项目排除路径
-**/target/
-.idea
-.gradle
-gradle
-.paper-nms
-.vscode
+.gradle/
+.idea/
+.vscode/
+build/
