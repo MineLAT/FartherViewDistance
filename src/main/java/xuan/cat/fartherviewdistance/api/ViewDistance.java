@@ -11,7 +11,7 @@ public final class ViewDistance {
 
 
     public static PlayerView getPlayerView(Player player) {
-        PlayerChunkView view = FVD.getChunkServer().getView(player);
+        PlayerChunkView view = FVD.get().getChunkServer().getView(player);
         return view != null ? view.viewAPI : null;
     }
 }

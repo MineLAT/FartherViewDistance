@@ -34,7 +34,7 @@ public final class Command implements CommandExecutor {
                 case "reload":
                     try {
                         this.configData.reload();
-                        FVD.getChunkServer().reloadMultithreaded();
+                        FVD.get().getChunkServer().reloadMultithreaded();
                         sender.sendMessage(ChatColor.YELLOW + this.chunkServer.lang.get(sender, "command.reread_configuration_successfully"));
                     } catch (final Exception var10) {
                         var10.printStackTrace();

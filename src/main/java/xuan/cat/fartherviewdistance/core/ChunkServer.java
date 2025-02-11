@@ -4,15 +4,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import xuan.cat.fartherviewdistance.api.event.PlayerSendExtendChunkEvent;
 import xuan.cat.fartherviewdistance.api.server.ServerChunk;
-import xuan.cat.fartherviewdistance.api.server.ServerChunkLight;
-import xuan.cat.fartherviewdistance.api.server.ServerNBT;
 import xuan.cat.fartherviewdistance.api.server.ServerPacket;
 import xuan.cat.fartherviewdistance.api.server.ServerWorld;
 import xuan.cat.fartherviewdistance.api.server.packet.PacketEvent;
@@ -44,46 +41,55 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- * 區塊伺服器
+ * Class for chunk-related operations
  */
 @SuppressWarnings("unused")
 public final class ChunkServer {
 
-    public static final Random random = new Random();
-    public final ServerWorld serverWorld;
-    public final ServerPacket serverPacket;
-    public final Map<Player, PlayerChunkView> playersViewMap = new ConcurrentHashMap<>();
-    public final CumulativeReport serverCumulativeReport = new CumulativeReport();
-    public final Map<World, CumulativeReport> worldsCumulativeReport = new ConcurrentHashMap<>();
-    public final Map<Integer, CumulativeReport> threadsCumulativeReport = new ConcurrentHashMap<>();
-    public final Set<Thread> threadsSet = ConcurrentHashMap.newKeySet();
-    public final LangFiles lang = new LangFiles();
+    public static final Random RANDOM = new Random();
+
     private final ConfigData configData;
-    private final Plugin plugin;
-    private final Set<BukkitTask> bukkitTasks = ConcurrentHashMap.newKeySet();
-    private final NetworkTraffic serverNetworkTraffic = new NetworkTraffic();
-    private final Map<World, NetworkTraffic> worldsNetworkTraffic = new ConcurrentHashMap<>();
-    private final AtomicInteger serverGeneratedChunk = new AtomicInteger(0);
-    private final Map<World, AtomicInteger> worldsGeneratedChunk = new ConcurrentHashMap<>();
-    private final Set<Runnable> waitMoveSyncQueue = ConcurrentHashMap.newKeySet();
+    private final ServerWorld serverWorld;
+    private final ServerPacket serverPacket;
     private final ViewShape viewShape;
-    public volatile boolean globalPause = false;
-    private boolean running = true;
+
+    public final LangFiles lang = new LangFiles();
+
+    private final Set<BukkitTask> bukkitTasks = ConcurrentHashMap.newKeySet();
+
     private ScheduledExecutorService multithreadedService;
     private AtomicBoolean multithreadedCanRun;
+
+    public final Set<Thread> threadsSet = ConcurrentHashMap.newKeySet();
+    public final Map<Integer, CumulativeReport> threadsCumulativeReport = new ConcurrentHashMap<>();
+
+    public final CumulativeReport serverCumulativeReport = new CumulativeReport();
+    public final Map<World, CumulativeReport> worldsCumulativeReport = new ConcurrentHashMap<>();
+
+    private final NetworkTraffic serverNetworkTraffic = new NetworkTraffic();
+    private final Map<World, NetworkTraffic> worldsNetworkTraffic = new ConcurrentHashMap<>();
+
+    private final AtomicInteger serverGeneratedChunk = new AtomicInteger(0);
+    private final Map<World, AtomicInteger> worldsGeneratedChunk = new ConcurrentHashMap<>();
+
+    public final Map<Player, PlayerChunkView> playersViewMap = new ConcurrentHashMap<>();
+    private final Set<Runnable> waitMoveSyncQueue = ConcurrentHashMap.newKeySet();
     private List<World> lastWorldList = new ArrayList<>();
 
-    public ChunkServer(final ConfigData configData, final Plugin plugin, final ViewShape viewShape, final ServerWorld serverWorld,
-                       final ServerPacket serverPacket) {
+    public volatile boolean globalPause = false;
+    private boolean running = true;
+
+    public ChunkServer(final ConfigData configData, final Plugin plugin, final ViewShape viewShape, final ServerWorld serverWorld, final ServerPacket serverPacket) {
         this.configData = configData;
-        this.plugin = plugin;
         this.serverWorld = serverWorld;
         this.serverPacket = serverPacket;
         this.viewShape = viewShape;
+
         final BukkitScheduler scheduler = Bukkit.getScheduler();
         this.bukkitTasks.add(scheduler.runTaskTimer(plugin, this::tickSync, 0, 1));
         this.bukkitTasks.add(scheduler.runTaskTimerAsynchronously(plugin, this::tickAsync, 0, 1));
         this.bukkitTasks.add(scheduler.runTaskTimerAsynchronously(plugin, this::tickReport, 0, 20));
+
         this.reloadMultithreaded();
     }
 
@@ -119,7 +125,7 @@ public final class ChunkServer {
      * @return The method is returning an object of type PlayerChunkView.
      */
     public PlayerChunkView getView(final Player player) {
-        return (PlayerChunkView) this.playersViewMap.get(player);
+        return this.playersViewMap.get(player);
     }
 
     /**
@@ -138,6 +144,8 @@ public final class ChunkServer {
         this.threadsCumulativeReport.clear();
         this.threadsSet.clear();
         this.playersViewMap.values().forEach(view -> view.waitSend = false);
+
+
         final AtomicBoolean canRun = new AtomicBoolean(true);
         this.multithreadedCanRun = canRun;
         this.multithreadedService = Executors.newScheduledThreadPool(this.configData.asyncThreadAmount + 1);
@@ -297,7 +305,7 @@ public final class ChunkServer {
                 try {
                     final List<World> worldList = this.lastWorldList;
                     final List<PlayerChunkView> viewList = Arrays
-                            .asList((PlayerChunkView[]) this.playersViewMap.values().toArray(new PlayerChunkView[0]));
+                            .asList(this.playersViewMap.values().toArray(new PlayerChunkView[0]));
                     Collections.shuffle(viewList);
 
                     for (final PlayerChunkView view : viewList) {
@@ -378,21 +386,14 @@ public final class ChunkServer {
                                                 // 讀取最新
                                                 try {
                                                     if (configWorld.readServerLoadedChunk) {
-                                                        final ServerChunk chunk = this.serverWorld.getChunkFromMemoryCache(world,
-                                                                chunkX, chunkZ);
+                                                        final ServerChunk chunk = this.serverWorld.getChunkFromMemoryCache(world, chunkX, chunkZ);
                                                         if (chunk != null) {
                                                             // 讀取快取
                                                             this.serverCumulativeReport.increaseLoadFast();
                                                             worldCumulativeReport.increaseLoadFast();
                                                             view.cumulativeReport.increaseLoadFast();
                                                             threadCumulativeReport.increaseLoadFast();
-                                                            final List<Runnable> asyncRunnable = new ArrayList<>();
-                                                            final ServerChunkLight chunkLight = this.serverWorld.fromLight(world);
-                                                            final ServerNBT chunkNBT = chunk.toNBT(chunkLight, asyncRunnable);
-                                                            asyncRunnable.forEach(Runnable::run);
-                                                            this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunkX, chunkZ,
-                                                                    chunkNBT, chunkLight, syncKey, worldCumulativeReport,
-                                                                    threadCumulativeReport);
+                                                            this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunk, syncKey, worldCumulativeReport, threadCumulativeReport);
                                                             break handlePlayer;
                                                         }
                                                     }
@@ -404,18 +405,14 @@ public final class ChunkServer {
 
                                                 // 讀取最快
                                                 try {
-                                                    final ServerNBT chunkNBT = this.serverWorld.getChunkNBTFromDisk(world, chunkX,
-                                                            chunkZ);
-                                                    if (chunkNBT != null
-                                                            && this.serverWorld.fromStatus(chunkNBT).isAbove(ServerChunk.Status.FULL)) {
+                                                    final ServerChunk chunk = this.serverWorld.getChunkFromDisk(world, chunkX, chunkZ);
+                                                    if (chunk != null && chunk.getStatus().isAbove(ServerChunk.Status.FULL)) {
                                                         // 讀取區域文件
                                                         this.serverCumulativeReport.increaseLoadFast();
                                                         worldCumulativeReport.increaseLoadFast();
                                                         view.cumulativeReport.increaseLoadFast();
                                                         threadCumulativeReport.increaseLoadFast();
-                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunkX, chunkZ,
-                                                                chunkNBT, this.serverWorld.fromLight(world, chunkNBT), syncKey,
-                                                                worldCumulativeReport, threadCumulativeReport);
+                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunk, syncKey, worldCumulativeReport, threadCumulativeReport);
                                                         break handlePlayer;
                                                     }
                                                 } catch (NullPointerException | NoClassDefFoundError | NoSuchMethodError
@@ -436,21 +433,15 @@ public final class ChunkServer {
                                             // 生成
                                             try {
                                                 // paper
-                                                final Chunk chunk = world.getChunkAtAsync(chunkX, chunkZ, canGenerated, true).get();
-                                                if (chunk != null) {
+                                                final Chunk asyncChunk = world.getChunkAtAsync(chunkX, chunkZ, canGenerated, true).get();
+                                                if (asyncChunk != null) {
                                                     this.serverCumulativeReport.increaseLoadSlow();
                                                     worldCumulativeReport.increaseLoadSlow();
                                                     view.cumulativeReport.increaseLoadSlow();
                                                     threadCumulativeReport.increaseLoadSlow();
                                                     try {
-                                                        final List<Runnable> asyncRunnable = new ArrayList<>();
-                                                        final ServerChunkLight chunkLight = this.serverWorld.fromLight(world);
-                                                        final ServerNBT chunkNBT = this.serverWorld.fromChunk(world, chunk)
-                                                                .toNBT(chunkLight, asyncRunnable);
-                                                        asyncRunnable.forEach(Runnable::run);
-                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunkX, chunkZ,
-                                                                chunkNBT, chunkLight, syncKey, worldCumulativeReport,
-                                                                threadCumulativeReport);
+                                                        final ServerChunk chunk = this.serverWorld.getChunkOrLoad(world, asyncChunk);
+                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunk, syncKey, worldCumulativeReport, threadCumulativeReport);
                                                         break handlePlayer;
                                                     } catch (NullPointerException | NoClassDefFoundError |
                                                              NoSuchMethodError
@@ -474,17 +465,12 @@ public final class ChunkServer {
                                                     view.cumulativeReport.increaseLoadSlow();
                                                     threadCumulativeReport.increaseLoadSlow();
                                                     try {
-                                                        final List<Runnable> asyncRunnable = new ArrayList<>();
-                                                        final ServerChunkLight chunkLight = this.serverWorld.fromLight(world);
-                                                        final CompletableFuture<ServerNBT> syncNBT = new CompletableFuture<>();
-                                                        this.waitMoveSyncQueue.add(() -> syncNBT.complete(
-                                                                this.serverWorld.fromChunk(world, world.getChunkAt(chunkX, chunkZ))
-                                                                        .toNBT(chunkLight, asyncRunnable)));
-                                                        final ServerNBT chunkNBT = syncNBT.get();
-                                                        asyncRunnable.forEach(Runnable::run);
-                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunkX, chunkZ,
-                                                                chunkNBT, chunkLight, syncKey, worldCumulativeReport,
-                                                                threadCumulativeReport);
+                                                        final CompletableFuture<ServerChunk> syncChunk = new CompletableFuture<>();
+                                                        this.waitMoveSyncQueue.add(() -> syncChunk.complete(
+                                                                this.serverWorld.getChunkOrLoad(world, world.getChunkAt(chunkX, chunkZ))
+                                                                       ));
+                                                        final ServerChunk chunk = syncChunk.get();
+                                                        this.sendChunk(world, configWorld, worldNetworkTraffic, view, chunk, syncKey, worldCumulativeReport, threadCumulativeReport);
                                                         break handlePlayer;
                                                     } catch (NullPointerException | NoClassDefFoundError |
                                                              NoSuchMethodError
@@ -546,21 +532,6 @@ public final class ChunkServer {
      * @param view                   The "view" parameter represents the player's
      *                               chunk view, which contains information
      *                               about the chunks that the player can see.
-     * @param chunkX                 The `chunkX` parameter represents the X
-     *                               coordinate of the chunk that needs to be
-     *                               sent.
-     * @param chunkZ                 The parameter `chunkZ` represents the
-     *                               Z-coordinate of the chunk that needs to be
-     *                               sent.
-     * @param chunkNBT               The chunkNBT parameter is an object that
-     *                               represents the NBT (Named Binary Tag) data
-     *                               of the chunk. NBT is a data format used by
-     *                               Minecraft to store structured data. In this
-     *                               case, the chunkNBT object contains the NBT
-     *                               data for the chunk being sent.
-     * @param chunkLight             The parameter `chunkLight` is of type
-     *                               `BranchChunkLight` and represents the light
-     *                               data for the chunk being sent.
      * @param syncKey                A unique identifier used to synchronize the
      *                               sending of chunks between the server and
      *                               the player.
@@ -575,34 +546,27 @@ public final class ChunkServer {
      *                               consumption for a specific thread.
      */
     private void sendChunk(final World world, final ConfigData.World configWorld, final NetworkTraffic worldNetworkTraffic,
-                           final PlayerChunkView view, final int chunkX, final int chunkZ, final ServerNBT chunkNBT, final ServerChunkLight chunkLight,
+                           final PlayerChunkView view, final ServerChunk chunk,
                            final long syncKey, final CumulativeReport worldCumulativeReport, final CumulativeReport threadCumulativeReport) {
-        final ServerChunk chunk = this.serverWorld.fromChunk(world, chunkX, chunkZ, chunkNBT,
-                this.configData.calculateMissingHeightMap);
         final PlayerSendExtendChunkEvent event = new PlayerSendExtendChunkEvent(view.viewAPI, chunk, world);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return;
-        if (configWorld.preventXray != null && configWorld.preventXray.size() > 0) {
-            for (final Map.Entry<BlockData, BlockData[]> conversionMap : configWorld.preventXray.entrySet())
-                chunk.replaceAllMaterial(conversionMap.getValue(), conversionMap.getKey());
-        }
 
         final AtomicInteger consumeTraffic = new AtomicInteger(0);
-        final Consumer<Player> chunkAndLightPacket = this.serverPacket.sendChunkAndLight(chunk, chunkLight, configWorld.sendTitleData,
-                consumeTraffic::addAndGet);
+        final Consumer<Player> chunkAndLightPacket = this.serverPacket.sendChunkAndLight(configWorld, chunk, consumeTraffic::addAndGet);
         synchronized (view.networkSpeed) {
             final Location nowLoc = view.getPlayer().getLocation();
             final int nowChunkX = nowLoc.getBlockX() >> 4;
             final int nowChunkZ = nowLoc.getBlockZ() >> 4;
             final ViewMap viewMap = view.getMap();
             if (world != nowLoc.getWorld()) {
-                view.getMap().markWaitPosition(chunkX, chunkZ);
+                view.getMap().markWaitPosition(chunk.getX(), chunk.getZ());
                 return;
             }
-            if (view.getMap().isWaitPosition(chunkX, chunkZ))
+            if (view.getMap().isWaitPosition(chunk.getX(), chunk.getZ()))
                 return;
-            if (this.viewShape.isInsideEdge(nowChunkX, nowChunkZ, chunkX, chunkZ, viewMap.serverDistance))
+            if (this.viewShape.isInsideEdge(nowChunkX, nowChunkZ, chunk.getX(), chunk.getZ(), viewMap.serverDistance))
                 return;
             if (view.syncKey != syncKey)
                 return;
@@ -618,7 +582,7 @@ public final class ChunkServer {
                     view.networkSpeed.add(30000, 0);
                 }
 
-                final long pingID = ChunkServer.random.nextLong();
+                final long pingID = ChunkServer.RANDOM.nextLong();
                 view.networkSpeed.pingID = pingID;
                 view.networkSpeed.pingTimestamp = System.currentTimeMillis();
                 this.serverPacket.sendKeepAlive(view.getPlayer(), pingID);
@@ -634,7 +598,7 @@ public final class ChunkServer {
             threadCumulativeReport.addConsume(consumeTraffic.get());
 
             if (needMeasure) {
-                final long speedID = ChunkServer.random.nextLong();
+                final long speedID = ChunkServer.RANDOM.nextLong();
                 view.networkSpeed.speedID = speedID;
                 view.networkSpeed.speedConsume = consumeTraffic.get();
                 view.networkSpeed.speedTimestamp = System.currentTimeMillis();

@@ -1,6 +1,6 @@
 name: FartherViewDistance
 version: ${version}
-main: xuan.cat.fartherviewdistance.ChunkIndex
+main: xuan.cat.fartherviewdistance.FVD
 api-version: 1.13
 softdepend: [PlaceholderAPI]
 authors: [xuancat0208, EuSouVoce]

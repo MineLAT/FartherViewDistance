@@ -34,7 +34,7 @@ public final class ChunkListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void event(final PlayerJoinEvent event) {
-        // The line `branchMinecraft.injectPlayer(event.getPlayer());` is injecting code
+        // The line `serverWorld.injectPlayer(event.getPlayer());` is injecting code
         // into the player object. This code is used to handle events related to the
         // player, such as when they move or teleport. By injecting this code, the
         // plugin is able to track the player's actions and perform certain actions

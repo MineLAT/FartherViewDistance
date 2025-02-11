@@ -4,22 +4,12 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
-
 public interface ServerWorld {
-    ServerNBT getChunkNBTFromDisk(World world, int chunkX, int chunkZ) throws IOException;
+    ServerChunk getChunkFromDisk(World world, int chunkX, int chunkZ);
 
     ServerChunk getChunkFromMemoryCache(World world, int chunkX, int chunkZ);
 
-    ServerChunk fromChunk(World world, int chunkX, int chunkZ, ServerNBT nbt, boolean integralHeightmap);
-
-    ServerChunkLight fromLight(World world, ServerNBT nbt);
-
-    ServerChunkLight fromLight(World world);
-
-    ServerChunk fromChunk(World world, Chunk chunk);
-
-    ServerChunk.Status fromStatus(ServerNBT nbt);
+    ServerChunk getChunkOrLoad(World world, Chunk chunk);
 
     void injectPlayer(Player player);
 }

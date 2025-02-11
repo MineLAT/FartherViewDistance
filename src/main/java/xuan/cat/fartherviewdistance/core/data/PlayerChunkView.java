@@ -50,7 +50,7 @@ public final class PlayerChunkView {
         this.serverPacket = serverPacket;
         this.mapView = configData.viewDistanceMode.createMap(viewShape);
         this.lastWorld = player.getWorld();
-        this.syncKey = ChunkServer.random.nextLong();
+        this.syncKey = ChunkServer.RANDOM.nextLong();
         this.updateDistance();
         this.delay();
         this.mapView.setCenter(player.getLocation());
@@ -216,7 +216,7 @@ public final class PlayerChunkView {
     public void unload() {
         if (!this.isUnload) {
             this.delay();
-            this.syncKey = ChunkServer.random.nextLong();
+            this.syncKey = ChunkServer.RANDOM.nextLong();
             this.isUnload = true;
             this.serverPacket.sendViewDistance(this.player, 0);
             this.serverPacket.sendViewDistance(this.player, this.mapView.extendDistance);
